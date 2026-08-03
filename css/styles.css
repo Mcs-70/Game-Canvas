@@ -46,6 +46,12 @@
   box-sizing: border-box;
 }
 
+/* components below set their own `display` unconditionally, which would
+   otherwise beat the UA stylesheet's [hidden] rule in the cascade */
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 76px; /* offset for the fixed header when jumping to anchors */
@@ -457,12 +463,8 @@ h1, h2, h3, h4 {
   padding-block: var(--space-4);
 }
 
-/* ===== Memory Match game ===== */
-.memory-game {
-  text-align: center;
-}
-
-.mem-stats {
+/* ===== Shared game stats bar (Shape Match + Snake) ===== */
+.game-stats {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -473,8 +475,13 @@ h1, h2, h3, h4 {
   font-weight: 600;
 }
 
-.mem-stats-item span:last-child {
+.game-stats-item span:last-child {
   color: var(--color-primary);
+}
+
+/* ===== Memory Match game ===== */
+.memory-game {
+  text-align: center;
 }
 
 .mem-grid {
@@ -619,6 +626,103 @@ h1, h2, h3, h4 {
     animation: none;
   }
 }
+
+/* ===== Snake game ===== */
+.snake-game {
+  text-align: center;
+}
+
+.snake-phone {
+  position: relative;
+  display: inline-block;
+  padding: var(--space-3);
+  background: var(--color-primary-dark);
+  border-radius: 28px;
+  box-shadow: 0 20px 40px rgba(8, 34, 38, 0.35);
+  outline: none;
+}
+
+.snake-phone:focus-visible {
+  box-shadow: 0 20px 40px rgba(8, 34, 38, 0.35), 0 0 0 3px var(--color-coral);
+}
+
+.snake-screen {
+  position: relative;
+  width: min(320px, 78vw);
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 3px solid #0a1f23;
+}
+
+.snake-screen canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.snake-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  text-align: center;
+  background: rgba(10, 31, 35, 0.85);
+}
+
+.snake-overlay-panel {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  color: #fff;
+}
+
+.snake-overlay-panel p {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 220px;
+}
+
+.snake-gameover-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.snake-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  justify-content: center;
+  margin: var(--space-3) auto 0;
+}
+
+.snake-dpad-btn {
+  border: none;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.snake-dpad-btn:hover {
+  background: var(--color-primary-light);
+}
+
+.snake-dpad-btn:active {
+  transform: scale(0.92);
+}
+
+.snake-dpad-up { grid-column: 2; grid-row: 1; }
+.snake-dpad-left { grid-column: 1; grid-row: 2; }
+.snake-dpad-right { grid-column: 3; grid-row: 2; }
+.snake-dpad-down { grid-column: 2; grid-row: 3; }
 
 /* ===== About ===== */
 .about-content {

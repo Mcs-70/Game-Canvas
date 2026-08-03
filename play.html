@@ -36,12 +36,12 @@
       <h2 id="memory-game-title" class="section-title" data-en="Shape Match" data-ar="طابق الأشكال">Shape Match</h2>
       <p class="section-subtitle" data-en="Flip two cards at a time and find every matching pair." data-ar="اقلب بطاقتين في كل مرة وابحث عن كل زوج متطابق.">Flip two cards at a time and find every matching pair.</p>
 
-      <div class="mem-stats">
-        <p class="mem-stats-item">
-          <span class="mem-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-move-count">0</span>
+      <div class="game-stats">
+        <p class="game-stats-item">
+          <span class="game-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-move-count">0</span>
         </p>
-        <p class="mem-stats-item">
-          <span class="mem-label" data-en="Pairs found" data-ar="الأزواج المكتشفة">Pairs found</span>: <span id="mem-match-count">0</span>/8
+        <p class="game-stats-item">
+          <span class="game-label" data-en="Pairs found" data-ar="الأزواج المكتشفة">Pairs found</span>: <span id="mem-match-count">0</span>/8
         </p>
         <button type="button" class="btn btn-outline btn-dark" id="mem-restart" data-en="Restart" data-ar="إعادة">Restart</button>
       </div>
@@ -50,8 +50,49 @@
 
       <div class="mem-win-banner" id="mem-win-banner" hidden>
         <p data-en="Nicely done &mdash; you matched every pair!" data-ar="أحسنت — لقد طابقت كل الأزواج!">Nicely done &mdash; you matched every pair!</p>
-        <p><span class="mem-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-win-move-count">0</span></p>
+        <p><span class="game-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-win-move-count">0</span></p>
         <button type="button" class="btn btn-primary" id="mem-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
+      </div>
+    </section>
+
+    <!-- ===== SNAKE GAME ===== -->
+    <section class="section snake-game" aria-labelledby="snake-game-title">
+      <h2 id="snake-game-title" class="section-title" data-en="Snake" data-ar="الثعبان">Snake</h2>
+      <p class="section-subtitle" data-en="A classic-phone throwback &mdash; guide the snake to the food without hitting the walls or yourself." data-ar="عودة إلى ألعاب الهواتف الكلاسيكية — وجّه الثعبان نحو الطعام دون الاصطدام بالجدران أو بنفسه.">A classic-phone throwback &mdash; guide the snake to the food without hitting the walls or yourself.</p>
+
+      <div class="game-stats">
+        <p class="game-stats-item">
+          <span class="game-label" data-en="Score" data-ar="النتيجة">Score</span>: <span id="snake-score">0</span>
+        </p>
+        <p class="game-stats-item">
+          <span class="game-label" data-en="High Score" data-ar="أعلى نتيجة">High Score</span>: <span id="snake-high-score">0</span>
+        </p>
+        <button type="button" class="btn btn-outline btn-dark" id="snake-restart" data-en="Restart" data-ar="إعادة">Restart</button>
+      </div>
+
+      <div class="snake-phone" id="snake-phone" tabindex="0" aria-label="Snake game. Click the screen, then use the arrow keys, W A S D, or the pad below to play.">
+        <div class="snake-screen">
+          <canvas id="snake-canvas" width="320" height="320" role="img" aria-label="Snake game board"></canvas>
+
+          <div class="snake-overlay" id="snake-overlay">
+            <div class="snake-overlay-panel" id="snake-start-panel">
+              <p data-en="Use the arrow keys, W A S D, or the pad below to move." data-ar="استخدم مفاتيح الأسهم أو لوحة التحكم أدناه للتحرك.">Use the arrow keys, W A S D, or the pad below to move.</p>
+              <button type="button" class="btn btn-primary" id="snake-start" data-en="Start Game" data-ar="ابدأ اللعبة">Start Game</button>
+            </div>
+            <div class="snake-overlay-panel" id="snake-gameover-panel" hidden>
+              <p class="snake-gameover-title" data-en="Game Over" data-ar="انتهت اللعبة">Game Over</p>
+              <p><span class="game-label" data-en="Score" data-ar="النتيجة">Score</span>: <span id="snake-final-score">0</span></p>
+              <button type="button" class="btn btn-primary" id="snake-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="snake-dpad" id="snake-dpad">
+        <button type="button" class="snake-dpad-btn snake-dpad-up" data-dir="up" aria-label="Move up">&#9650;</button>
+        <button type="button" class="snake-dpad-btn snake-dpad-left" data-dir="left" aria-label="Move left">&#9664;</button>
+        <button type="button" class="snake-dpad-btn snake-dpad-right" data-dir="right" aria-label="Move right">&#9654;</button>
+        <button type="button" class="snake-dpad-btn snake-dpad-down" data-dir="down" aria-label="Move down">&#9660;</button>
       </div>
 
       <div class="mem-back-link">
@@ -66,5 +107,6 @@
 
   <script src="js/script.js"></script>
   <script src="js/memory-game.js"></script>
+  <script src="js/snake-game.js"></script>
 </body>
 </html>
