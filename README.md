@@ -35,9 +35,11 @@ Then visit `http://localhost:8000`.
 - Primary: deep teal/blue. Accents: coral and gold.
 - All shapes (hexagons, circles, triangles, diamonds) are pure CSS (`clip-path`) or inline SVG — no image assets.
 
-## Bilingual readiness
+## Bilingual: English / Arabic
 
-The site ships English-first (`<html lang="en" dir="ltr">`). Text elements that will need an Arabic version carry `data-en` / `data-ar` attributes so a language switch can swap content without restructuring markup. The stylesheet uses logical/direction-aware custom properties (`--dir-start`, `--dir-end`) and an `[dir="rtl"]` override block so flipping `dir="rtl"` on `<html>` re-mirrors layout (e.g. the mobile nav drawer) without extra CSS.
+The site ships English-first (`<html lang="en" dir="ltr">`) with a full Arabic version available via the **English / العربية** toggle in the nav. Translatable text carries `data-en` / `data-ar` attributes (aria-labels use `data-en-label` / `data-ar-label`, and the meta description uses `data-en-content` / `data-ar-content`); `js/script.js` swaps them in, flips `lang`/`dir` on `<html>`, and remembers the choice in `localStorage` so it persists across pages and visits. A small inline script in each `<head>` applies the saved language before first paint to avoid a flash of the wrong direction.
+
+The stylesheet uses logical/direction-aware custom properties (`--dir-start`, `--dir-end`) and an `[dir="rtl"]` override block, so flipping `dir="rtl"` on `<html>` re-mirrors layout (e.g. the mobile nav drawer) without extra CSS, plus an Arabic-friendly font stack.
 
 ## Status
 

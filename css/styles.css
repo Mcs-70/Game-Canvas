@@ -33,10 +33,16 @@
   --dir-end: right;
 }
 
-/* When dir="rtl" is set on <html> (future Arabic version), flip the axis */
+/* When dir="rtl" is set on <html> (Arabic version), flip the axis */
 [dir="rtl"] {
   --dir-start: right;
   --dir-end: left;
+}
+
+/* Arabic-friendly font stack; Segoe UI/Tahoma/Arial all ship Arabic glyphs
+   on Windows, Noto Sans Arabic covers Linux, Geeza Pro covers macOS/iOS */
+[dir="rtl"] body {
+  font-family: "Segoe UI", Tahoma, "Geeza Pro", "Noto Sans Arabic", Arial, sans-serif;
 }
 
 /* ===== Reset ===== */
@@ -216,6 +222,23 @@ h1, h2, h3, h4 {
 .nav-link.active {
   color: var(--color-gold);
   border-color: var(--color-gold);
+}
+
+.lang-toggle {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lang-toggle:hover,
+.lang-toggle:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-gold);
+  color: var(--color-gold);
 }
 
 .nav-toggle {

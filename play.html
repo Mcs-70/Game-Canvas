@@ -2,20 +2,32 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
+  <!-- runs before first paint so a returning Arabic-language visitor doesn't see a flash of LTR English -->
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem("gc-lang") === "ar") {
+          document.documentElement.lang = "ar";
+          document.documentElement.dir = "rtl";
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Games | Game Canvas</title>
-  <meta name="description" content="The Game Canvas digital games hub is coming soon.">
+  <title data-en="Play Games | Game Canvas" data-ar="الألعاب الرقمية | لوحة الألعاب">Play Games | Game Canvas</title>
+  <meta name="description" data-en-content="The Game Canvas digital games hub is coming soon." data-ar-content="منصة الألعاب الرقمية من لوحة الألعاب قادمة قريبًا." content="The Game Canvas digital games hub is coming soon.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
   <header class="site-header">
-    <nav class="navbar" aria-label="Main navigation">
+    <nav class="navbar" aria-label="Main navigation" data-en-label="Main navigation" data-ar-label="التنقل الرئيسي">
       <a href="index.html" class="nav-logo" data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</a>
       <ul class="nav-menu nav-menu-static">
-        <li><a href="index.html#board-games" class="nav-link">Board Games</a></li>
-        <li><a href="index.html#services" class="nav-link">Our Services</a></li>
-        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="index.html#board-games" class="nav-link" data-en="Board Games" data-ar="ألعاب الطاولة">Board Games</a></li>
+        <li><a href="index.html#services" class="nav-link" data-en="Our Services" data-ar="خدماتنا">Our Services</a></li>
+        <li><a href="index.html" class="nav-link" data-en="Home" data-ar="الرئيسية">Home</a></li>
+        <li><button type="button" id="lang-toggle" class="nav-link lang-toggle" aria-label="Switch to Arabic">العربية</button></li>
       </ul>
     </nav>
   </header>
@@ -27,15 +39,16 @@
         <span class="shape shape-hexagon"></span>
         <span class="shape shape-circle"></span>
       </div>
-      <h1 class="section-title">Play Games</h1>
-      <p class="section-subtitle">Our digital games hub is under construction. Check back soon to play directly in your browser.</p>
-      <a href="index.html" class="btn btn-primary">Back to Home</a>
+      <h1 class="section-title" data-en="Play Games" data-ar="الألعاب الرقمية">Play Games</h1>
+      <p class="section-subtitle" data-en="Our digital games hub is under construction. Check back soon to play directly in your browser." data-ar="منصة الألعاب الرقمية لدينا قيد الإنشاء. عد قريبًا للعب مباشرة من متصفحك.">Our digital games hub is under construction. Check back soon to play directly in your browser.</p>
+      <a href="index.html" class="btn btn-primary" data-en="Back to Home" data-ar="العودة إلى الرئيسية">Back to Home</a>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p class="footer-bottom">&copy; 2026 Game Canvas. All rights reserved.</p>
+    <p class="footer-bottom" data-en="© 2026 Game Canvas. All rights reserved." data-ar="© 2026 لوحة الألعاب. جميع الحقوق محفوظة.">&copy; 2026 Game Canvas. All rights reserved.</p>
   </footer>
 
+  <script src="js/script.js"></script>
 </body>
 </html>

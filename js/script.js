@@ -56,4 +56,55 @@ document.addEventListener("DOMContentLoaded", () => {
       if (section.id) observer.observe(section);
     });
   }
+
+  // ===== Language switch: swaps data-en/data-ar content, flips dir, and
+  // remembers the choice in localStorage (read early in <head> to avoid
+  // a flash of the wrong language/direction on repeat visits). =====
+  const STORAGE_KEY = "gc-lang";
+  const langToggle = document.getElementById("lang-toggle");
+  const translatableText = document.querySelectorAll("[data-en][data-ar]");
+  const translatableLabels = document.querySelectorAll("[data-en-label][data-ar-label]");
+  const translatableContent = document.querySelectorAll("[data-en-content][data-ar-content]");
+
+  function applyLanguage(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+    translatableText.forEach((el) => {
+      el.textContent = lang === "ar" ? el.dataset.ar : el.dataset.en;
+    });
+    translatableLabels.forEach((el) => {
+      el.setAttribute("aria-label", lang === "ar" ? el.dataset.arLabel : el.dataset.enLabel);
+    });
+    translatableContent.forEach((el) => {
+      el.setAttribute("content", lang === "ar" ? el.dataset.arContent : el.dataset.enContent);
+    });
+
+    if (langToggle) {
+      const nextLang = lang === "ar" ? "en" : "ar";
+      langToggle.textContent = nextLang === "ar" ? "العربية" : "English";
+      langToggle.setAttribute("lang", nextLang);
+      langToggle.setAttribute(
+        "aria-label",
+        nextLang === "ar" ? "التبديل إلى العربية" : "Switch to English"
+      );
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch (e) {}
+  }
+
+  if (langToggle) {
+    langToggle.addEventListener("click", () => {
+      const current = document.documentElement.lang === "ar" ? "ar" : "en";
+      applyLanguage(current === "ar" ? "en" : "ar");
+    });
+  }
+
+  let savedLang = "en";
+  try {
+    savedLang = localStorage.getItem(STORAGE_KEY) === "ar" ? "ar" : "en";
+  } catch (e) {}
+  applyLanguage(savedLang);
 });
