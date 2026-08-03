@@ -627,6 +627,102 @@ h1, h2, h3, h4 {
   }
 }
 
+/* ===== Leaderboard (shared by Shape Match + Snake) ===== */
+.leaderboard {
+  margin: var(--space-4) auto 0;
+  max-width: 340px;
+}
+
+.leaderboard-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.leaderboard-row:first-child {
+  border-color: var(--color-gold);
+  background: rgba(232, 185, 74, 0.12);
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.leaderboard-name {
+  color: var(--color-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-value {
+  font-weight: 700;
+  color: var(--color-coral);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.leaderboard-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.leaderboard-save-row {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.leaderboard-name-input {
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font: inherit;
+  font-size: 0.9rem;
+  max-width: 160px;
+}
+
+.leaderboard-name-input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+}
+
+.leaderboard-saved-msg {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.leaderboard-saved-msg-light {
+  color: var(--color-gold);
+}
+
 /* ===== Snake game ===== */
 .snake-game {
   text-align: center;

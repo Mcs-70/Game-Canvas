@@ -51,7 +51,19 @@
       <div class="mem-win-banner" id="mem-win-banner" hidden>
         <p data-en="Nicely done &mdash; you matched every pair!" data-ar="أحسنت — لقد طابقت كل الأزواج!">Nicely done &mdash; you matched every pair!</p>
         <p><span class="game-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-win-move-count">0</span></p>
+
+        <div class="leaderboard-save-row" id="mem-save-row">
+          <input type="text" class="leaderboard-name-input" id="mem-name-input" maxlength="18" data-en-placeholder="Your name" data-ar-placeholder="اسمك" placeholder="Your name" aria-label="Your name">
+          <button type="button" class="btn btn-outline btn-dark" id="mem-save-score" data-en="Save Score" data-ar="حفظ النتيجة">Save Score</button>
+        </div>
+        <p class="leaderboard-saved-msg" id="mem-saved-msg" hidden data-en="Saved to Top Scores!" data-ar="تم الحفظ في أفضل النتائج!">Saved to Top Scores!</p>
+
         <button type="button" class="btn btn-primary" id="mem-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
+      </div>
+
+      <div class="leaderboard" aria-labelledby="mem-leaderboard-title">
+        <h3 id="mem-leaderboard-title" class="leaderboard-title" data-en="Top Scores &mdash; Fewest Moves" data-ar="أفضل النتائج — أقل الحركات">Top Scores &mdash; Fewest Moves</h3>
+        <ol class="leaderboard-list" id="mem-leaderboard-list"></ol>
       </div>
     </section>
 
@@ -82,6 +94,13 @@
             <div class="snake-overlay-panel" id="snake-gameover-panel" hidden>
               <p class="snake-gameover-title" data-en="Game Over" data-ar="انتهت اللعبة">Game Over</p>
               <p><span class="game-label" data-en="Score" data-ar="النتيجة">Score</span>: <span id="snake-final-score">0</span></p>
+
+              <div class="leaderboard-save-row" id="snake-save-row">
+                <input type="text" class="leaderboard-name-input" id="snake-name-input" maxlength="18" data-en-placeholder="Your name" data-ar-placeholder="اسمك" placeholder="Your name" aria-label="Your name">
+                <button type="button" class="btn btn-outline" id="snake-save-score" data-en="Save Score" data-ar="حفظ النتيجة">Save Score</button>
+              </div>
+              <p class="leaderboard-saved-msg leaderboard-saved-msg-light" id="snake-saved-msg" hidden data-en="Saved to Top Scores!" data-ar="تم الحفظ في أفضل النتائج!">Saved to Top Scores!</p>
+
               <button type="button" class="btn btn-primary" id="snake-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
             </div>
           </div>
@@ -95,6 +114,11 @@
         <button type="button" class="snake-dpad-btn snake-dpad-down" data-dir="down" aria-label="Move down">&#9660;</button>
       </div>
 
+      <div class="leaderboard" aria-labelledby="snake-leaderboard-title">
+        <h3 id="snake-leaderboard-title" class="leaderboard-title" data-en="Top Scores &mdash; Highest Score" data-ar="أفضل النتائج — أعلى نتيجة">Top Scores &mdash; Highest Score</h3>
+        <ol class="leaderboard-list" id="snake-leaderboard-list"></ol>
+      </div>
+
       <div class="mem-back-link">
         <a href="index.html" class="btn btn-outline btn-dark" data-en="Back to Home" data-ar="العودة إلى الرئيسية">Back to Home</a>
       </div>
@@ -106,6 +130,7 @@
   </footer>
 
   <script src="js/script.js"></script>
+  <script src="js/leaderboard.js"></script>
   <script src="js/memory-game.js"></script>
   <script src="js/snake-game.js"></script>
 </body>

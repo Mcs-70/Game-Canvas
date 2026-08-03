@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // and remembers the choice in localStorage so it persists across pages.
   const LANG_STORAGE_KEY = "gc-lang";
   const translatable = document.querySelectorAll("[data-en][data-ar]");
+  const translatablePlaceholders = document.querySelectorAll("[data-en-placeholder][data-ar-placeholder]");
   const langToggle = document.getElementById("lang-toggle");
   const langToggleText = langToggle ? langToggle.querySelector(".lang-toggle-text") : null;
 
@@ -77,6 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         el.textContent = text;
       }
+    });
+
+    translatablePlaceholders.forEach((el) => {
+      const text = lang === "ar" ? el.dataset.arPlaceholder : el.dataset.enPlaceholder;
+      if (text != null) el.setAttribute("placeholder", text);
     });
 
     if (langToggleText) {

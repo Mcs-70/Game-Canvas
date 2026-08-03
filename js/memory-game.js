@@ -13,6 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const restartBtn = document.getElementById("mem-restart");
   const playAgainBtn = document.getElementById("mem-play-again");
 
+  const LEADERBOARD_KEY = "gc-memory-leaderboard";
+  const leaderboardList = document.getElementById("mem-leaderboard-list");
+  const nameInput = document.getElementById("mem-name-input");
+  const saveBtn = document.getElementById("mem-save-score");
+  const saveRow = document.getElementById("mem-save-row");
+  const savedMsg = document.getElementById("mem-saved-msg");
+  const langToggle = document.getElementById("lang-toggle");
+
   // 8 unique shape+color combinations, reusing the site's clip-path shapes.
   const SYMBOLS = [
     { shape: "mem-shape-hex", color: "mem-color-gold" },
@@ -138,6 +146,38 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => confetti.remove(), 3200);
   }
 
+  function renderLeaderboard() {
+    const isAr = document.documentElement.lang === "ar";
+    GCLeaderboard.render(leaderboardList, GCLeaderboard.load(LEADERBOARD_KEY), (value) =>
+      isAr ? `${value} حركة` : `${value} moves`
+    );
+  }
+
+  function resetSaveRow() {
+    if (nameInput) {
+      nameInput.value = GCLeaderboard.getSavedName();
+      nameInput.disabled = false;
+    }
+    if (saveBtn) saveBtn.disabled = false;
+    if (saveRow) saveRow.hidden = false;
+    if (savedMsg) savedMsg.hidden = true;
+  }
+
+  function saveScore() {
+    const isAr = document.documentElement.lang === "ar";
+    const raw = nameInput ? nameInput.value.trim() : "";
+    const name = raw ? raw.slice(0, 18) : isAr ? "مجهول" : "Anonymous";
+    GCLeaderboard.setSavedName(name);
+    GCLeaderboard.addEntry(LEADERBOARD_KEY, { name, value: moves }, (a, b) => a.value - b.value);
+    renderLeaderboard();
+    if (saveBtn) saveBtn.disabled = true;
+    if (nameInput) nameInput.disabled = true;
+    if (savedMsg) savedMsg.hidden = false;
+  }
+
+  if (saveBtn) saveBtn.addEventListener("click", saveScore);
+  if (langToggle) langToggle.addEventListener("click", renderLeaderboard);
+
   function onWin() {
     if (winMoveCountEl) winMoveCountEl.textContent = String(moves);
     if (winBanner) {
@@ -147,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
       void winBanner.offsetWidth;
       winBanner.classList.add("mem-win-animate");
     }
+    resetSaveRow();
     spawnConfetti();
   }
 
@@ -163,5 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (restartBtn) restartBtn.addEventListener("click", startGame);
   if (playAgainBtn) playAgainBtn.addEventListener("click", startGame);
 
+  renderLeaderboard();
   startGame();
 });

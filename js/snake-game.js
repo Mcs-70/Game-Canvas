@@ -26,6 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const topRestartBtn = document.getElementById("snake-restart");
   const dpad = document.getElementById("snake-dpad");
 
+  const LEADERBOARD_KEY = "gc-snake-leaderboard";
+  const leaderboardList = document.getElementById("snake-leaderboard-list");
+  const nameInput = document.getElementById("snake-name-input");
+  const saveBtn = document.getElementById("snake-save-score");
+  const saveRow = document.getElementById("snake-save-row");
+  const savedMsg = document.getElementById("snake-saved-msg");
+  const langToggle = document.getElementById("lang-toggle");
+
   const KEY_DIR = {
     ArrowUp: "up", KeyW: "up",
     ArrowDown: "down", KeyS: "down",
@@ -115,6 +123,38 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.hidden = true;
   }
 
+  function renderLeaderboard() {
+    const isAr = document.documentElement.lang === "ar";
+    GCLeaderboard.render(leaderboardList, GCLeaderboard.load(LEADERBOARD_KEY), (value) =>
+      isAr ? `${value} نقطة` : `${value} pts`
+    );
+  }
+
+  function resetSaveRow() {
+    if (nameInput) {
+      nameInput.value = GCLeaderboard.getSavedName();
+      nameInput.disabled = false;
+    }
+    if (saveBtn) saveBtn.disabled = false;
+    if (saveRow) saveRow.hidden = false;
+    if (savedMsg) savedMsg.hidden = true;
+  }
+
+  function saveScore() {
+    const isAr = document.documentElement.lang === "ar";
+    const raw = nameInput ? nameInput.value.trim() : "";
+    const name = raw ? raw.slice(0, 18) : isAr ? "مجهول" : "Anonymous";
+    GCLeaderboard.setSavedName(name);
+    GCLeaderboard.addEntry(LEADERBOARD_KEY, { name, value: score }, (a, b) => b.value - a.value);
+    renderLeaderboard();
+    if (saveBtn) saveBtn.disabled = true;
+    if (nameInput) nameInput.disabled = true;
+    if (savedMsg) savedMsg.hidden = false;
+  }
+
+  if (saveBtn) saveBtn.addEventListener("click", saveScore);
+  if (langToggle) langToggle.addEventListener("click", renderLeaderboard);
+
   function resetState() {
     const mid = Math.floor(GRID_SIZE / 2);
     snake = Array.from({ length: START_LENGTH }, (_, i) => ({ x: mid - i, y: mid }));
@@ -127,6 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     placeFood();
     updateScore();
     draw();
+    resetSaveRow();
     showStartPanel();
   }
 
@@ -216,5 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  renderLeaderboard();
   resetState();
 });
