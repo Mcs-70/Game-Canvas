@@ -128,6 +128,16 @@ h1, h2, h3, h4 {
   transform: translateY(-2px);
 }
 
+/* variant for use on light backgrounds, e.g. outside the hero/play banner */
+.btn-outline.btn-dark {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.btn-outline.btn-dark:hover {
+  background: rgba(14, 59, 67, 0.08);
+}
+
 .btn-large {
   padding: 1rem 2.4rem;
   font-size: 1.05rem;
@@ -354,6 +364,21 @@ h1, h2, h3, h4 {
   font-size: 0.95rem;
 }
 
+/* ===== Badges ===== */
+.badge-soon {
+  display: block;
+  width: fit-content;
+  margin: var(--space-1) auto 0;
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: var(--color-primary-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* ===== Services ===== */
 .services {
   background: var(--color-surface);
@@ -421,12 +446,179 @@ h1, h2, h3, h4 {
 }
 
 .play-placeholder {
-  margin: 6rem auto var(--space-5);
+  margin: 6rem auto 0;
   max-width: var(--container-width);
 }
 
 .play-placeholder .hero-shapes .shape-hexagon { top: 10%; inset-inline-start: 10%; opacity: 0.4; }
 .play-placeholder .hero-shapes .shape-circle { bottom: 12%; inset-inline-end: 12%; opacity: 0.4; }
+
+.play-placeholder-compact {
+  padding-block: var(--space-4);
+}
+
+/* ===== Memory Match game ===== */
+.memory-game {
+  text-align: center;
+}
+
+.mem-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.mem-stats-item span:last-child {
+  color: var(--color-primary);
+}
+
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.mem-card {
+  aspect-ratio: 1 / 1;
+  perspective: 600px;
+}
+
+.mem-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.mem-card.flipped .mem-card-inner,
+.mem-card.matched .mem-card-inner {
+  transform: rotateY(180deg);
+}
+
+.mem-card.matched {
+  opacity: 0.55;
+}
+
+.mem-card-back,
+.mem-card-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  backface-visibility: hidden;
+}
+
+.mem-card-back {
+  background: var(--color-primary);
+  border: 2px solid var(--color-primary-light);
+}
+
+.mem-card-back::after {
+  content: "";
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.mem-card-front {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  transform: rotateY(180deg);
+}
+
+.mem-symbol {
+  width: 44%;
+  height: 44%;
+}
+
+/* shape/color classes are standalone so confetti pieces can reuse them at a different size */
+.mem-shape-hex { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+.mem-shape-circle { border-radius: 50%; }
+.mem-shape-triangle { clip-path: polygon(50% 0%, 100% 100%, 0% 100%); }
+.mem-shape-diamond { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+
+.mem-color-gold { background: var(--color-gold); }
+.mem-color-coral { background: var(--color-coral); }
+.mem-color-teal { background: var(--color-primary-light); }
+
+.mem-win-banner {
+  margin: var(--space-4) auto 0;
+  max-width: 420px;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-weight: 600;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+}
+
+.mem-win-banner.mem-win-animate {
+  animation: mem-pop-in 0.5s ease;
+}
+
+.mem-back-link {
+  margin-top: var(--space-4);
+}
+
+/* ===== Win confetti ===== */
+.mem-confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.mem-confetti-piece {
+  position: absolute;
+  top: -24px;
+  width: 12px;
+  height: 12px;
+  opacity: 0;
+  animation-name: mem-confetti-fall;
+  animation-timing-function: cubic-bezier(0.4, 0.1, 0.6, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes mem-confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+}
+
+@keyframes mem-pop-in {
+  0% { transform: scale(0.85); opacity: 0; }
+  60% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mem-confetti-piece {
+    animation: none;
+    display: none;
+  }
+
+  .mem-win-banner.mem-win-animate {
+    animation: none;
+  }
+}
 
 /* ===== About ===== */
 .about-content {

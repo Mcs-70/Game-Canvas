@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-en="Play Games | Game Canvas" data-ar="العب الآن | لوحة الألعاب">Play Games | Game Canvas</title>
-  <meta name="description" data-en="The Game Canvas digital games hub is coming soon." data-ar="منصة الألعاب الرقمية من لوحة الألعاب قريبًا." content="The Game Canvas digital games hub is coming soon.">
+  <meta name="description" data-en="Play a quick memory match while the full Game Canvas digital games hub is on its way." data-ar="العب لعبة تذكّر سريعة بينما منصة الألعاب الرقمية الكاملة من لوحة الألعاب في الطريق." content="Play a quick memory match while the full Game Canvas digital games hub is on its way.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -22,15 +22,41 @@
   </header>
 
   <main>
-    <section class="section play-placeholder">
-      <!-- placeholder for the future digital games hub; kept intentionally minimal -->
+    <section class="section play-placeholder play-placeholder-compact">
       <div class="hero-shapes" aria-hidden="true">
         <span class="shape shape-hexagon"></span>
         <span class="shape shape-circle"></span>
       </div>
       <h1 class="section-title" data-en="Play Games" data-ar="العب الآن">Play Games</h1>
-      <p class="section-subtitle" data-en="Our digital games hub is under construction. Check back soon to play directly in your browser." data-ar="منصة الألعاب الرقمية قيد الإنشاء. عد قريبًا للعب مباشرة من متصفحك.">Our digital games hub is under construction. Check back soon to play directly in your browser.</p>
-      <a href="index.html" class="btn btn-primary" data-en="Back to Home" data-ar="العودة إلى الرئيسية">Back to Home</a>
+      <p class="section-subtitle" data-en="The full digital games hub is under construction &mdash; try this quick memory match while you wait." data-ar="منصة الألعاب الرقمية الكاملة قيد الإنشاء — جرّب لعبة التذكّر السريعة هذه في الأثناء.">The full digital games hub is under construction &mdash; try this quick memory match while you wait.</p>
+    </section>
+
+    <!-- ===== MEMORY MATCH GAME ===== -->
+    <section class="section memory-game" aria-labelledby="memory-game-title">
+      <h2 id="memory-game-title" class="section-title" data-en="Shape Match" data-ar="طابق الأشكال">Shape Match</h2>
+      <p class="section-subtitle" data-en="Flip two cards at a time and find every matching pair." data-ar="اقلب بطاقتين في كل مرة وابحث عن كل زوج متطابق.">Flip two cards at a time and find every matching pair.</p>
+
+      <div class="mem-stats">
+        <p class="mem-stats-item">
+          <span class="mem-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-move-count">0</span>
+        </p>
+        <p class="mem-stats-item">
+          <span class="mem-label" data-en="Pairs found" data-ar="الأزواج المكتشفة">Pairs found</span>: <span id="mem-match-count">0</span>/8
+        </p>
+        <button type="button" class="btn btn-outline btn-dark" id="mem-restart" data-en="Restart" data-ar="إعادة">Restart</button>
+      </div>
+
+      <div class="mem-grid" id="mem-grid" role="group" aria-label="Memory match board"></div>
+
+      <div class="mem-win-banner" id="mem-win-banner" hidden>
+        <p data-en="Nicely done &mdash; you matched every pair!" data-ar="أحسنت — لقد طابقت كل الأزواج!">Nicely done &mdash; you matched every pair!</p>
+        <p><span class="mem-label" data-en="Moves" data-ar="الحركات">Moves</span>: <span id="mem-win-move-count">0</span></p>
+        <button type="button" class="btn btn-primary" id="mem-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
+      </div>
+
+      <div class="mem-back-link">
+        <a href="index.html" class="btn btn-outline btn-dark" data-en="Back to Home" data-ar="العودة إلى الرئيسية">Back to Home</a>
+      </div>
     </section>
   </main>
 
@@ -39,5 +65,6 @@
   </footer>
 
   <script src="js/script.js"></script>
+  <script src="js/memory-game.js"></script>
 </body>
 </html>
