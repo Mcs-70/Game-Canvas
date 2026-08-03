@@ -56,4 +56,44 @@ document.addEventListener("DOMContentLoaded", () => {
       if (section.id) observer.observe(section);
     });
   }
+
+  // Language switch: swaps every [data-en][data-ar] element's text (and
+  // meta content) between English and Arabic, flips dir for RTL layout,
+  // and remembers the choice in localStorage so it persists across pages.
+  const LANG_STORAGE_KEY = "gc-lang";
+  const translatable = document.querySelectorAll("[data-en][data-ar]");
+  const langToggle = document.getElementById("lang-toggle");
+  const langToggleText = langToggle ? langToggle.querySelector(".lang-toggle-text") : null;
+
+  function applyLanguage(lang) {
+    document.documentElement.lang = lang === "ar" ? "ar" : "en";
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+
+    translatable.forEach((el) => {
+      const text = lang === "ar" ? el.dataset.ar : el.dataset.en;
+      if (text == null) return;
+      if (el.tagName === "META") {
+        el.setAttribute("content", text);
+      } else {
+        el.textContent = text;
+      }
+    });
+
+    if (langToggleText) {
+      langToggleText.textContent = lang === "ar" ? "English" : "العربية";
+    }
+    if (langToggle) {
+      langToggle.setAttribute("aria-label", lang === "ar" ? "Switch to English" : "التبديل إلى العربية");
+    }
+  }
+
+  if (langToggle) {
+    langToggle.addEventListener("click", () => {
+      const next = document.documentElement.lang === "ar" ? "en" : "ar";
+      localStorage.setItem(LANG_STORAGE_KEY, next);
+      applyLanguage(next);
+    });
+  }
+
+  applyLanguage(localStorage.getItem(LANG_STORAGE_KEY) === "ar" ? "ar" : "en");
 });
