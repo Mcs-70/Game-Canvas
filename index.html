@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!-- lang/dir set on <html> so a future Arabic version only needs to flip these two attributes -->
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Canvas | Entertainment Designed for Everyone</title>
+  <meta name="description" content="Game Canvas provides board games, on-site entertainment services, and digital games for companies and groups.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ===== NAVIGATION ===== -->
+  <header class="site-header">
+    <nav class="navbar" aria-label="Main navigation">
+      <a href="#hero" class="nav-logo" data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</a>
+
+      <!-- checkbox-driven toggle keeps the mobile menu working with no JS dependency for basic show/hide -->
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+      <label for="nav-toggle" class="nav-hamburger" id="nav-hamburger" aria-label="Toggle navigation menu" aria-controls="nav-menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+
+      <ul class="nav-menu" id="nav-menu">
+        <li><a href="#board-games" class="nav-link" data-en="Board Games" data-ar="ألعاب الطاولة">Board Games</a></li>
+        <li><a href="#services" class="nav-link" data-en="Our Services" data-ar="خدماتنا">Our Services</a></li>
+        <li><a href="#play-games" class="nav-link" data-en="Play Games" data-ar="العب الآن">Play Games</a></li>
+        <li><a href="#about" class="nav-link" data-en="About Us" data-ar="من نحن">About Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section id="hero" class="hero">
+      <!-- decorative geometric shapes, purely visual -->
+      <div class="hero-shapes" aria-hidden="true">
+        <span class="shape shape-hexagon"></span>
+        <span class="shape shape-circle"></span>
+        <span class="shape shape-triangle"></span>
+        <span class="shape shape-diamond"></span>
+      </div>
+
+      <div class="hero-content">
+        <div class="hero-logo" aria-hidden="true">
+          <svg viewBox="0 0 120 120" width="88" height="88" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="60,4 112,32 112,88 60,116 8,88 8,32" fill="none" stroke="var(--color-gold)" stroke-width="4"/>
+            <circle cx="60" cy="60" r="26" fill="var(--color-coral)"/>
+            <polygon points="60,38 78,72 42,72" fill="var(--color-primary-light)"/>
+          </svg>
+        </div>
+        <h1 data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</h1>
+        <p class="tagline" data-en="Entertainment Designed for Everyone" data-ar="ترفيه مصمم للجميع">Entertainment Designed for Everyone</p>
+        <div class="hero-cta">
+          <a href="#services" class="btn btn-primary">Book an Event</a>
+          <a href="#board-games" class="btn btn-outline">Explore Games</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BOARD GAMES ===== -->
+    <section id="board-games" class="section board-games">
+      <h2 class="section-title">Board Games</h2>
+      <p class="section-subtitle">A curated library of physical games for every group and occasion.</p>
+
+      <div class="card-grid">
+        <article class="card">
+          <span class="card-shape shape-hexagon" aria-hidden="true"></span>
+          <h3>Strategy &amp; Tactics</h3>
+          <p>Deep, competitive games that reward planning and clever moves &mdash; great for teams that like to think a few steps ahead.</p>
+        </article>
+
+        <article class="card">
+          <span class="card-shape shape-circle" aria-hidden="true"></span>
+          <h3>Party &amp; Social</h3>
+          <p>Fast, funny, easy-to-learn games built to break the ice and get a whole room laughing together.</p>
+        </article>
+
+        <article class="card">
+          <span class="card-shape shape-triangle" aria-hidden="true"></span>
+          <h3>Cooperative Play</h3>
+          <p>Win-or-lose-together games that build communication and teamwork &mdash; a natural fit for corporate groups.</p>
+        </article>
+
+        <article class="card">
+          <span class="card-shape shape-diamond" aria-hidden="true"></span>
+          <h3>Classic Favorites</h3>
+          <p>Timeless titles reimagined with a modern table experience, for guests of every age from 10 to 30 and beyond.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== OUR SERVICES ===== -->
+    <section id="services" class="section services">
+      <h2 class="section-title">Our Services</h2>
+      <p class="section-subtitle">On-site entertainment, planned around your event.</p>
+
+      <div class="services-content">
+        <div class="services-text">
+          <p>Game Canvas designs and runs on-site entertainment experiences for companies and groups &mdash; from team-building days to private parties and corporate off-sites. We bring the games, the setup, and the hosts; you bring the group.</p>
+          <ul class="services-list">
+            <li>Corporate team-building sessions</li>
+            <li>Private and group events</li>
+            <li>Game-hosting staff for the full event</li>
+            <li>Custom game selection for your audience</li>
+          </ul>
+          <a href="#about" class="btn btn-primary">Contact Us to Arrange an Event</a>
+        </div>
+        <div class="services-visual" aria-hidden="true">
+          <span class="shape shape-hexagon large"></span>
+          <span class="shape shape-diamond small"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PLAY GAMES ===== -->
+    <section id="play-games" class="section play-games">
+      <h2 class="section-title">Play Games</h2>
+      <p class="section-subtitle">Our digital games hub is on the way &mdash; playable games, right in your browser.</p>
+      <a href="play.html" class="btn btn-primary btn-large" id="play-games-link">Go to Play Games</a>
+    </section>
+
+    <!-- ===== ABOUT US ===== -->
+    <section id="about" class="section about">
+      <h2 class="section-title">About Us</h2>
+      <p class="section-subtitle">Who we are and why we do this.</p>
+      <div class="about-content">
+        <p>Game Canvas provides digital and physical entertainment services for companies and groups, built for ages 10 to 30. We offer board games, on-site entertainment for corporate clients, and playable digital games.</p>
+        <p>Our mission is simple: make it easy for any group to have a genuinely good time together, whether that's around a table, at an office, or on a screen.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo" data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</span>
+        <p>Entertainment designed for everyone.</p>
+      </div>
+      <div class="footer-contact">
+        <h4>Contact</h4>
+        <p>Email: <a href="mailto:hello@gamecanvas.example">hello@gamecanvas.example</a></p>
+        <p>Phone: <a href="tel:+10000000000">+1 (000) 000-0000</a></p>
+        <p>Location: Your City, Your Country</p>
+      </div>
+      <div class="footer-social">
+        <h4>Follow Us</h4>
+        <ul class="social-links">
+          <li><a href="#" aria-label="Game Canvas on Instagram">Instagram</a></li>
+          <li><a href="#" aria-label="Game Canvas on X">X</a></li>
+          <li><a href="#" aria-label="Game Canvas on LinkedIn">LinkedIn</a></li>
+        </ul>
+      </div>
+    </div>
+    <p class="footer-bottom">&copy; 2026 Game Canvas. All rights reserved.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

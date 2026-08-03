@@ -1,0 +1,569 @@
+/* =========================================================
+   Game Canvas — stylesheet
+   Custom properties live in :root so the palette and RTL
+   flip-points can be adjusted from one place later.
+   ========================================================= */
+
+:root {
+  /* Palette */
+  --color-primary: #0e3b43;
+  --color-primary-light: #175c68;
+  --color-primary-dark: #082226;
+  --color-coral: #ff6f5e;
+  --color-gold: #e8b94a;
+  --color-bg: #f7f5f0;
+  --color-surface: #ffffff;
+  --color-text: #12262a;
+  --color-text-muted: #52686c;
+  --color-border: #e1ddd2;
+
+  /* Type & spacing */
+  --font-base: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --radius: 14px;
+  --container-width: 1120px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+
+  /* Logical-direction aware start/end, so an RTL stylesheet override
+     only needs to redefine these instead of every left/right rule */
+  --dir-start: left;
+  --dir-end: right;
+}
+
+/* When dir="rtl" is set on <html> (future Arabic version), flip the axis */
+[dir="rtl"] {
+  --dir-start: right;
+  --dir-end: left;
+}
+
+/* ===== Reset ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px; /* offset for the fixed header when jumping to anchors */
+}
+
+body {
+  font-family: var(--font-base);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+/* ===== Layout helpers ===== */
+.section {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3);
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  text-align: center;
+  color: var(--color-primary);
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  max-width: 640px;
+  margin: var(--space-1) auto var(--space-4);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-block;
+  padding: 0.85rem 1.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--color-coral);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 111, 94, 0.35);
+}
+
+.btn-outline {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.btn-large {
+  padding: 1rem 2.4rem;
+  font-size: 1.05rem;
+}
+
+/* ===== Geometric shapes =====
+   Shared shape primitives, reused across the hero, cards, and services
+   sections via clip-path so no image assets are needed. */
+.shape {
+  position: absolute;
+  display: block;
+}
+
+.shape-hexagon {
+  width: 90px;
+  height: 90px;
+  background: var(--color-gold);
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+
+.shape-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: var(--color-coral);
+}
+
+.shape-triangle {
+  width: 80px;
+  height: 80px;
+  background: var(--color-primary-light);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.shape-diamond {
+  width: 70px;
+  height: 70px;
+  background: var(--color-gold);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.shape.large { width: 160px; height: 160px; opacity: 0.9; }
+.shape.small { width: 60px; height: 60px; }
+
+/* ===== Header / Navbar ===== */
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 100;
+  background: rgba(14, 59, 67, 0.95);
+  backdrop-filter: blur(6px);
+}
+
+.navbar {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  position: relative;
+}
+
+.nav-logo {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+.nav-menu {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--color-gold);
+  border-color: var(--color-gold);
+}
+
+.nav-toggle {
+  display: none;
+}
+
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 110;
+}
+
+.nav-hamburger span {
+  width: 26px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* ===== Hero ===== */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: #fff;
+  overflow: hidden;
+  padding: var(--space-3);
+}
+
+.hero-shapes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-shapes .shape-hexagon { top: 12%; inset-inline-start: 8%; opacity: 0.5; }
+.hero-shapes .shape-circle { bottom: 16%; inset-inline-start: 14%; opacity: 0.4; }
+.hero-shapes .shape-triangle { top: 18%; inset-inline-end: 10%; opacity: 0.45; }
+.hero-shapes .shape-diamond { bottom: 10%; inset-inline-end: 16%; opacity: 0.5; }
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+}
+
+.hero-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.hero-content h1 {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  letter-spacing: 0.01em;
+}
+
+.tagline {
+  font-size: clamp(1.05rem, 2.5vw, 1.4rem);
+  color: var(--color-gold);
+  margin: var(--space-2) 0 var(--space-4);
+  font-weight: 500;
+}
+
+.hero-cta {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ===== Board Games cards ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+}
+
+.card {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-3) var(--space-3);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(14, 59, 67, 0.12);
+}
+
+.card-shape {
+  position: static;
+  margin-bottom: var(--space-2);
+  width: 48px;
+  height: 48px;
+  opacity: 0.9;
+}
+
+.card h3 {
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
+  font-size: 1.15rem;
+}
+
+.card p {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ===== Services ===== */
+.services {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+}
+
+.services-content {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.services-list {
+  margin: var(--space-3) 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.services-list li {
+  padding-inline-start: 1.4rem;
+  position: relative;
+  color: var(--color-text-muted);
+}
+
+.services-list li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  background: var(--color-coral);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.services-visual {
+  position: relative;
+  height: 220px;
+}
+
+.services-visual .shape-hexagon.large { position: absolute; top: 10%; inset-inline-start: 20%; }
+.services-visual .shape-diamond.small { position: absolute; bottom: 8%; inset-inline-end: 15%; }
+
+/* ===== Play Games ===== */
+.play-games,
+.play-placeholder {
+  text-align: center;
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+  color: #fff;
+  border-radius: var(--radius);
+  padding-block: var(--space-5);
+  position: relative;
+  overflow: hidden;
+}
+
+.play-games .section-title,
+.play-placeholder .section-title {
+  color: #fff;
+}
+
+.play-games .section-subtitle,
+.play-placeholder .section-subtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.play-placeholder {
+  margin: 6rem auto var(--space-5);
+  max-width: var(--container-width);
+}
+
+.play-placeholder .hero-shapes .shape-hexagon { top: 10%; inset-inline-start: 10%; opacity: 0.4; }
+.play-placeholder .hero-shapes .shape-circle { bottom: 12%; inset-inline-end: 12%; opacity: 0.4; }
+
+/* ===== About ===== */
+.about-content {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ===== Footer ===== */
+.site-footer {
+  background: var(--color-primary-dark);
+  color: rgba(255, 255, 255, 0.85);
+  padding: var(--space-4) var(--space-3) var(--space-2);
+}
+
+.footer-content {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.footer-brand .footer-logo {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.footer-brand p {
+  margin-top: var(--space-1);
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.site-footer h4 {
+  color: var(--color-gold);
+  margin-bottom: var(--space-1);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.site-footer p,
+.social-links a {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.social-links {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.social-links a:hover,
+.footer-contact a:hover {
+  color: var(--color-gold);
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: var(--space-4);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 860px) {
+  .services-content {
+    grid-template-columns: 1fr;
+  }
+
+  .services-visual {
+    height: 140px;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .nav-hamburger {
+    display: flex;
+  }
+
+  .nav-menu {
+    position: fixed;
+    inset-inline-end: 0;
+    top: 0;
+    height: 100vh;
+    width: min(72vw, 300px);
+    background: var(--color-primary-dark);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+  }
+
+  [dir="rtl"] .nav-menu {
+    transform: translateX(-100%);
+  }
+
+  .nav-toggle:checked ~ .nav-menu {
+    transform: translateX(0);
+  }
+
+  .nav-toggle:checked ~ .nav-hamburger span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+
+  .nav-toggle:checked ~ .nav-hamburger span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle:checked ~ .nav-hamburger span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* play.html has no hamburger/checkbox, so its nav just wraps inline instead of sliding in */
+  .nav-menu-static {
+    position: static;
+    height: auto;
+    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2) var(--space-3);
+    transform: none;
+    background: transparent;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .services-list li {
+    text-align: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
