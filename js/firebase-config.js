@@ -9,13 +9,13 @@
 // for how to create the project and enable Realtime Database.
 
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyAVTASz9FmvzIx0ihuN9t7BMyuefyEddT8",
+  authDomain: "game-canvas-1b1d8.firebaseapp.com",
+  databaseURL: "https://game-canvas-1b1d8-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "game-canvas-1b1d8",
+  storageBucket: "game-canvas-1b1d8.firebasestorage.app",
+  messagingSenderId: "1029934905027",
+  appId: "1:1029934905027:web:a1d8b16b076fbb141a1476",
 };
 
 export function isFirebaseConfigured() {
