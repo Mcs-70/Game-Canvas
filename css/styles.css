@@ -583,6 +583,10 @@ h1, h2, h3, h4 {
 
 .mem-back-link {
   margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
 }
 
 /* ===== Win confetti ===== */
@@ -819,6 +823,280 @@ h1, h2, h3, h4 {
 .snake-dpad-left { grid-column: 1; grid-row: 2; }
 .snake-dpad-right { grid-column: 3; grid-row: 2; }
 .snake-dpad-down { grid-column: 2; grid-row: 3; }
+
+/* ===== Trio game ===== */
+.trio-game {
+  text-align: center;
+}
+
+.trio-mode-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.trio-mode-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.trio-hint {
+  max-width: 560px;
+  margin: 0 auto var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.trio-status {
+  min-height: 1.4em;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: var(--space-3);
+}
+
+.trio-board {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.trio-zone {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+}
+
+.trio-zone-you {
+  border-color: var(--color-gold);
+}
+
+.trio-zone-title {
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.trio-zone-count {
+  font-size: 0.7rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.trio-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+}
+
+.trio-center-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: 0.35rem;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.trio-card {
+  width: 40px;
+  height: 54px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  background: var(--color-primary-light);
+  border: 2px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.trio-card-empty {
+  visibility: hidden;
+}
+
+.trio-card-back {
+  background: var(--color-primary-dark);
+}
+
+.trio-card-back::after {
+  content: "?";
+  opacity: 0.5;
+  font-size: 0.95rem;
+}
+
+button.trio-card {
+  cursor: pointer;
+}
+
+button.trio-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(14, 59, 67, 0.2);
+}
+
+button.trio-card:disabled {
+  cursor: default;
+}
+
+.trio-card:not(.trio-card-back):not(:disabled) {
+  cursor: default;
+}
+
+.trio-card.trio-revealed {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(232, 185, 74, 0.3);
+}
+
+.trio-card.trio-mismatch {
+  border-color: var(--color-coral);
+  animation: trio-shake 0.4s ease;
+}
+
+@keyframes trio-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.trio-piles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  justify-content: center;
+  margin-top: var(--space-1);
+  min-height: 1.6rem;
+}
+
+.trio-pile-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trio-win-banner {
+  margin: var(--space-4) auto 0;
+  max-width: 420px;
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-weight: 600;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+}
+
+.tmpl-win-actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== Trio — play with a friend (lobby / room) ===== */
+.tmpl-lobby {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3);
+  max-width: 620px;
+  margin: 0 auto var(--space-3);
+}
+
+.tmpl-lobby-col {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+.tmpl-lobby-title {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+.trio-input {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.trio-input:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+}
+
+.trio-input-code {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.tmpl-error {
+  max-width: 480px;
+  margin: 0 auto var(--space-3);
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: rgba(255, 111, 94, 0.12);
+  border: 1px solid var(--color-coral);
+  color: var(--color-coral);
+  font-weight: 600;
+  text-align: center;
+}
+
+.tmpl-waiting {
+  max-width: 360px;
+  margin: 0 auto var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+.tmpl-room-code {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: var(--color-primary);
+  background: var(--color-bg);
+  border: 2px dashed var(--color-gold);
+  border-radius: 12px;
+  padding: 0.5rem 1.2rem;
+}
 
 /* ===== About ===== */
 .about-content {

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-en="Trio | Game Canvas" data-ar="تريو | لوحة الألعاب">Trio | Game Canvas</title>
+  <meta name="description" data-en="Play Trio against two bots: reveal hidden number cards and collect matching trios before they do." data-ar="العب تريو ضد روبوتين: اكشف بطاقات الأرقام المخفية واجمع الثلاثيات المتطابقة قبلهما." content="Play Trio against two bots: reveal hidden number cards and collect matching trios before they do.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="navbar" aria-label="Main navigation">
+      <a href="index.html" class="nav-logo" data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</a>
+      <ul class="nav-menu nav-menu-static">
+        <li><a href="index.html#board-games" class="nav-link" data-en="Board Games" data-ar="ألعاب الطاولة">Board Games</a></li>
+        <li><a href="play.html" class="nav-link" data-en="Play Games" data-ar="العب الآن">Play Games</a></li>
+        <li><a href="index.html" class="nav-link" data-en="Home" data-ar="الرئيسية">Home</a></li>
+        <li><button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to Arabic"><span class="lang-toggle-text">العربية</span></button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== TRIO GAME ===== -->
+    <section class="section trio-game" aria-labelledby="trio-title">
+      <h1 id="trio-title" class="section-title" data-en="Trio" data-ar="تريو">Trio</h1>
+      <p class="section-subtitle" data-en="Find hidden number trios before the bots do." data-ar="اعثر على ثلاثيات الأرقام المخفية قبل الروبوتات.">Find hidden number trios before the bots do.</p>
+
+      <div class="trio-mode-select" id="trio-mode-select" role="group" aria-label="Game mode">
+        <span class="game-label" data-en="Mode" data-ar="الوضع">Mode</span>
+        <button type="button" class="btn btn-outline btn-dark trio-mode-btn active" data-mode="simple" data-en="Simple" data-ar="بسيط">Simple</button>
+        <button type="button" class="btn btn-outline btn-dark trio-mode-btn" data-mode="spicy" data-en="Spicy" data-ar="حار">Spicy</button>
+      </div>
+
+      <p class="trio-hint" id="trio-hint" data-en="Simple: collect 3 trios to win. Spicy: collect two connected trios (numbers 7 apart, or adding up to 7) to win. In either mode, the trio of 7s wins instantly." data-ar="بسيط: اجمع 3 ثلاثيات للفوز. حار: اجمع ثلاثيتين مترابطتين (رقمان يفصل بينهما 7، أو مجموعهما 7) للفوز. في أي وضع، ثلاثية الرقم 7 تفوز فورًا.">Simple: collect 3 trios to win. Spicy: collect two connected trios (numbers 7 apart, or adding up to 7) to win. In either mode, the trio of 7s wins instantly.</p>
+
+      <div class="game-stats">
+        <p class="game-stats-item">
+          <span class="game-label" data-en="Turn" data-ar="الدور">Turn</span>: <span id="trio-turn-name">You</span>
+        </p>
+        <p class="game-stats-item">
+          <span class="game-label" data-en="Your trios" data-ar="ثلاثياتك">Your trios</span>: <span id="trio-your-count">0</span>
+        </p>
+        <button type="button" class="btn btn-outline btn-dark" id="trio-restart" data-en="Restart" data-ar="إعادة">Restart</button>
+      </div>
+
+      <p class="trio-status" id="trio-status" role="status" aria-live="polite"></p>
+
+      <div class="trio-board" id="trio-board">
+        <div class="trio-zone trio-zone-bot" id="trio-zone-bot2">
+          <h3 class="trio-zone-title">
+            <span data-en="Bot 2" data-ar="الروبوت 2">Bot 2</span>
+            <span class="trio-zone-count" id="trio-bot2-count">9</span>
+          </h3>
+          <div class="trio-hand" id="trio-hand-bot2"></div>
+          <div class="trio-piles" id="trio-piles-bot2"></div>
+        </div>
+
+        <div class="trio-zone trio-zone-bot" id="trio-zone-bot1">
+          <h3 class="trio-zone-title">
+            <span data-en="Bot 1" data-ar="الروبوت 1">Bot 1</span>
+            <span class="trio-zone-count" id="trio-bot1-count">9</span>
+          </h3>
+          <div class="trio-hand" id="trio-hand-bot1"></div>
+          <div class="trio-piles" id="trio-piles-bot1"></div>
+        </div>
+
+        <div class="trio-zone trio-zone-center">
+          <h3 class="trio-zone-title" data-en="Center" data-ar="الوسط">Center</h3>
+          <div class="trio-center-grid" id="trio-center-grid"></div>
+        </div>
+
+        <div class="trio-zone trio-zone-you" id="trio-zone-you">
+          <h3 class="trio-zone-title">
+            <span data-en="Your hand" data-ar="يدك">Your hand</span>
+            <span class="trio-zone-count" id="trio-you-count">9</span>
+          </h3>
+          <div class="trio-hand" id="trio-hand-you"></div>
+          <div class="trio-piles" id="trio-piles-you"></div>
+        </div>
+      </div>
+
+      <div class="trio-win-banner" id="trio-win-banner" hidden>
+        <p id="trio-win-message"></p>
+
+        <div class="leaderboard-save-row" id="trio-save-row">
+          <input type="text" class="leaderboard-name-input" id="trio-name-input" maxlength="18" data-en-placeholder="Your name" data-ar-placeholder="اسمك" placeholder="Your name" aria-label="Your name">
+          <button type="button" class="btn btn-outline btn-dark" id="trio-save-score" data-en="Save Score" data-ar="حفظ النتيجة">Save Score</button>
+        </div>
+        <p class="leaderboard-saved-msg" id="trio-saved-msg" hidden data-en="Saved to Top Scores!" data-ar="تم الحفظ في أفضل النتائج!">Saved to Top Scores!</p>
+
+        <button type="button" class="btn btn-primary" id="trio-play-again" data-en="Play Again" data-ar="العب مرة أخرى">Play Again</button>
+      </div>
+
+      <div class="leaderboard" aria-labelledby="trio-leaderboard-title">
+        <h3 id="trio-leaderboard-title" class="leaderboard-title" data-en="Top Scores &mdash; Fewest Turns to Win" data-ar="أفضل النتائج — أقل عدد أدوار للفوز">Top Scores &mdash; Fewest Turns to Win</h3>
+        <ol class="leaderboard-list" id="trio-leaderboard-list"></ol>
+      </div>
+
+      <div class="mem-back-link">
+        <a href="trio-multiplayer.html" class="btn btn-primary" data-en="Play with a Friend Instead" data-ar="العب مع صديق بدلاً من ذلك">Play with a Friend Instead</a>
+        <a href="play.html" class="btn btn-outline btn-dark" data-en="Back to Play Games" data-ar="العودة إلى صفحة الألعاب">Back to Play Games</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-bottom" data-en="&copy; 2026 Game Canvas. All rights reserved." data-ar="© 2026 لوحة الألعاب. جميع الحقوق محفوظة.">&copy; 2026 Game Canvas. All rights reserved.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/trio-game.js"></script>
+</body>
+</html>

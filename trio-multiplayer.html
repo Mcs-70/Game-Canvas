@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-en="Trio with a Friend | Game Canvas" data-ar="تريو مع صديق | لوحة الألعاب">Trio with a Friend | Game Canvas</title>
+  <meta name="description" data-en="Create a room and play Trio live with a friend, right in your browser." data-ar="أنشئ غرفة والعب تريو مباشرة مع صديق، في متصفحك." content="Create a room and play Trio live with a friend, right in your browser.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="navbar" aria-label="Main navigation">
+      <a href="index.html" class="nav-logo" data-en="Game Canvas" data-ar="لوحة الألعاب">Game Canvas</a>
+      <ul class="nav-menu nav-menu-static">
+        <li><a href="index.html#board-games" class="nav-link" data-en="Board Games" data-ar="ألعاب الطاولة">Board Games</a></li>
+        <li><a href="play.html" class="nav-link" data-en="Play Games" data-ar="العب الآن">Play Games</a></li>
+        <li><a href="index.html" class="nav-link" data-en="Home" data-ar="الرئيسية">Home</a></li>
+        <li><button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch to Arabic"><span class="lang-toggle-text">العربية</span></button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="section trio-game" aria-labelledby="tmpl-title">
+      <h1 id="tmpl-title" class="section-title" data-en="Trio &mdash; Play with a Friend" data-ar="تريو — العب مع صديق">Trio &mdash; Play with a Friend</h1>
+      <p class="section-subtitle" data-en="Create a room and share the code, or join a friend's room." data-ar="أنشئ غرفة وشارك الرمز، أو انضم إلى غرفة صديقك.">Create a room and share the code, or join a friend's room.</p>
+
+      <!-- ===== LOBBY: create or join ===== -->
+      <div class="tmpl-lobby" id="tmpl-lobby">
+        <div class="tmpl-lobby-col">
+          <h2 class="tmpl-lobby-title" data-en="Create a Room" data-ar="إنشاء غرفة">Create a Room</h2>
+          <input type="text" class="trio-input" id="tmpl-create-name" maxlength="18" data-en-placeholder="Your name" data-ar-placeholder="اسمك" placeholder="Your name" aria-label="Your name">
+          <div class="trio-mode-select" id="tmpl-mode-select" role="group" aria-label="Game mode">
+            <span class="game-label" data-en="Mode" data-ar="الوضع">Mode</span>
+            <button type="button" class="btn btn-outline btn-dark trio-mode-btn active" data-mode="simple" data-en="Simple" data-ar="بسيط">Simple</button>
+            <button type="button" class="btn btn-outline btn-dark trio-mode-btn" data-mode="spicy" data-en="Spicy" data-ar="حار">Spicy</button>
+          </div>
+          <button type="button" class="btn btn-primary" id="tmpl-create-btn" data-en="Create Room" data-ar="إنشاء غرفة">Create Room</button>
+        </div>
+
+        <div class="tmpl-lobby-col">
+          <h2 class="tmpl-lobby-title" data-en="Join a Room" data-ar="الانضمام إلى غرفة">Join a Room</h2>
+          <input type="text" class="trio-input" id="tmpl-join-name" maxlength="18" data-en-placeholder="Your name" data-ar-placeholder="اسمك" placeholder="Your name" aria-label="Your name">
+          <input type="text" class="trio-input trio-input-code" id="tmpl-join-code" maxlength="5" data-en-placeholder="Room code" data-ar-placeholder="رمز الغرفة" placeholder="Room code" aria-label="Room code">
+          <button type="button" class="btn btn-outline btn-dark" id="tmpl-join-btn" data-en="Join Room" data-ar="انضمام">Join Room</button>
+        </div>
+      </div>
+
+      <p class="tmpl-error" id="tmpl-error" role="alert" hidden></p>
+
+      <!-- ===== WAITING FOR A GUEST ===== -->
+      <div class="tmpl-waiting" id="tmpl-waiting" hidden>
+        <p data-en="Share this code with your friend:" data-ar="شارك هذا الرمز مع صديقك:">Share this code with your friend:</p>
+        <div class="tmpl-room-code" id="tmpl-room-code-display"></div>
+        <button type="button" class="btn btn-outline btn-dark" id="tmpl-copy-code" data-en="Copy Code" data-ar="نسخ الرمز">Copy Code</button>
+        <p class="trio-status" id="tmpl-waiting-status" data-en="Waiting for your friend to join&hellip;" data-ar="بانتظار انضمام صديقك…">Waiting for your friend to join&hellip;</p>
+        <button type="button" class="btn btn-outline btn-dark" id="tmpl-cancel-room" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+      </div>
+
+      <!-- ===== GAME BOARD ===== -->
+      <div id="tmpl-game" hidden>
+        <div class="game-stats">
+          <p class="game-stats-item">
+            <span class="game-label" data-en="Room" data-ar="الغرفة">Room</span>: <span id="tmpl-room-label"></span>
+          </p>
+          <p class="game-stats-item">
+            <span class="game-label" data-en="Turn" data-ar="الدور">Turn</span>: <span id="tmpl-turn-name"></span>
+          </p>
+        </div>
+
+        <p class="trio-status" id="tmpl-status" role="status" aria-live="polite"></p>
+
+        <div class="trio-board" id="tmpl-board">
+          <div class="trio-zone trio-zone-bot" id="tmpl-zone-opp">
+            <h3 class="trio-zone-title">
+              <span id="tmpl-opp-name">Opponent</span>
+              <span class="trio-zone-count" id="tmpl-opp-count">9</span>
+            </h3>
+            <div class="trio-hand" id="tmpl-hand-opp"></div>
+            <div class="trio-piles" id="tmpl-piles-opp"></div>
+          </div>
+
+          <div class="trio-zone trio-zone-center">
+            <h3 class="trio-zone-title" data-en="Center" data-ar="الوسط">Center</h3>
+            <div class="trio-center-grid" id="tmpl-center-grid"></div>
+          </div>
+
+          <div class="trio-zone trio-zone-you" id="tmpl-zone-you">
+            <h3 class="trio-zone-title">
+              <span data-en="Your hand" data-ar="يدك">Your hand</span>
+              <span class="trio-zone-count" id="tmpl-you-count">9</span>
+            </h3>
+            <div class="trio-hand" id="tmpl-hand-you"></div>
+            <div class="trio-piles" id="tmpl-piles-you"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="trio-win-banner" id="tmpl-win-banner" hidden>
+        <p id="tmpl-win-message"></p>
+        <div class="tmpl-win-actions">
+          <button type="button" class="btn btn-primary" id="tmpl-rematch-btn" data-en="Rematch" data-ar="إعادة المباراة">Rematch</button>
+          <button type="button" class="btn btn-outline btn-dark" id="tmpl-leave-btn" data-en="Leave Room" data-ar="مغادرة الغرفة">Leave Room</button>
+        </div>
+      </div>
+
+      <div class="mem-back-link">
+        <a href="trio.html" class="btn btn-outline btn-dark" data-en="Back to Trio" data-ar="العودة إلى تريو">Back to Trio</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-bottom" data-en="&copy; 2026 Game Canvas. All rights reserved." data-ar="© 2026 لوحة الألعاب. جميع الحقوق محفوظة.">&copy; 2026 Game Canvas. All rights reserved.</p>
+  </footer>
+
+  <script src="js/script.js"></script>
+  <script type="module" src="js/trio-multiplayer.js"></script>
+</body>
+</html>
