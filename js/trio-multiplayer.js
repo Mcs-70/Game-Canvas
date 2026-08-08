@@ -296,11 +296,40 @@ document.addEventListener("DOMContentLoaded", () => {
       joinBtn.disabled = true;
       const token = genToken();
       const roomRef = ref(db, `trioRooms/${code}`);
+
+      // runTransaction's update function can fire speculatively with
+      // `room === null` on its first call whenever the SDK has no
+      // locally-cached value yet (e.g. a fresh page that never fetched
+      // this path before) — even when the room genuinely exists on the
+      // server. Returning `undefined` (abort) for that case would kill
+      // real joins outright. A plain get() first warms the SDK's local
+      // cache for this exact path, so the transaction's first call sees
+      // the real data — and it doubles as a fast existence/status check
+      // for a clean error message before even attempting to join.
+      let preSnap;
+      try {
+        preSnap = await get(roomRef);
+      } catch (e) {
+        showError("Couldn't reach the room. Check your Firebase setup and try again.", "تعذّر الوصول إلى الغرفة. تحقق من إعداد Firebase وحاول مجددًا.");
+        joinBtn.disabled = false;
+        return;
+      }
+      if (!preSnap.exists()) {
+        showError("Room not found. Double-check the code.", "لم يتم العثور على الغرفة. تحقق من الرمز.");
+        joinBtn.disabled = false;
+        return;
+      }
+      if (preSnap.val().status !== "lobby") {
+        showError("That room has already started.", "هذه الغرفة بدأت اللعبة بالفعل.");
+        joinBtn.disabled = false;
+        return;
+      }
+
       let result;
       try {
         result = await runTransaction(roomRef, (room) => {
-          if (!room) return undefined; // abort: room doesn't exist
-          if (room.status !== "lobby") return undefined; // abort: already started
+          if (!room) return undefined; // abort: room vanished between the check above and now
+          if (room.status !== "lobby") return undefined; // abort: started in the meantime
           const players = room.players || {};
           const count = Object.keys(players).length;
           if (count >= MAX_PLAYERS) return undefined; // abort: full
