@@ -98,6 +98,10 @@ document.addEventListener("DOMContentLoaded", () => {
     oppWinSimple: { en: "{name} wins with three trios. Better luck next time!", ar: "{name} يفوز بثلاث ثلاثيات. حظ أوفر في المرة القادمة!" },
     oppWinSpicy: { en: "{name} wins with two connected trios. Better luck next time!", ar: "{name} يفوز بثلاثيتين مترابطتين. حظ أوفر في المرة القادمة!" },
     oppWinSeven: { en: "{name} wins instantly with the trio of 7s!", ar: "{name} يفوز فورًا بثلاثية الرقم 7!" },
+    stalemate: {
+      en: "No trio can be reached any more — the round is a draw. Start a rematch for a fresh deal.",
+      ar: "لم يعد بالإمكان الوصول إلى أي ثلاثية — الجولة تعادل. ابدأ مباراة جديدة لتوزيع جديد.",
+    },
   };
 
   let mode = "simple";
@@ -195,6 +199,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const dealtCenter = cards.slice(offset).map((c) => ({ ...c, claimed: false }));
     return { hands: dealtHands, center: dealtCenter };
+  }
+
+  // Only each hand's low/high end and the unclaimed centre are ever
+  // reachable, and that set is frozen until a trio is removed — so a deal
+  // where no value has 3 copies among them can never produce a single
+  // trio. That happens in ~10% of 3-player deals (and 1-5% at 4-6), and
+  // leaves the room passing turns forever with nothing findable.
+  function hasReachableTrio(handsMap, centerArr, roles) {
+    const counts = new Map();
+    const bump = (v) => counts.set(v, (counts.get(v) || 0) + 1);
+    roles.forEach((role) => {
+      const arr = handsMap[role];
+      if (!arr || !arr.length) return;
+      bump(arr[0].value);
+      if (arr.length > 1) bump(arr[arr.length - 1].value);
+    });
+    centerArr.forEach((c) => {
+      if (!c.claimed) bump(c.value);
+    });
+    for (const n of counts.values()) if (n >= 3) return true;
+    return false;
+  }
+
+  // Walking the seed forward is deterministic, so every client
+  // independently lands on the same first playable deal without any
+  // extra coordination over the wire.
+  function dealPlayableFromSeed(seed, roles) {
+    let s = seed >>> 0;
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const dealt = dealFromSeed(s, roles);
+      if (hasReachableTrio(dealt.hands, dealt.center, roles)) return dealt;
+      s = (s + 1) >>> 0;
+    }
+    return dealFromSeed(seed, roles);
   }
 
   function connectors(value) {
@@ -536,7 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetLocalState(seed) {
-    const dealt = dealFromSeed(seed, playerRoles);
+    const dealt = dealPlayableFromSeed(seed, playerRoles);
     hands = dealt.hands;
     center = dealt.center;
     piles = {};
@@ -695,7 +733,24 @@ document.addEventListener("DOMContentLoaded", () => {
       after(TRIO_HOLD, () => announceWin(winner, win), instant);
       return;
     }
+    // Removing a trio exposes new hand ends, so the position can become
+    // unreachable mid-round even from a playable deal. Every client
+    // evaluates the same state, so they all reach this together.
+    if (!hasReachableTrio(hands, center, playerRoles)) {
+      after(TRIO_HOLD, () => announceStalemate(), instant);
+      return;
+    }
     after(TRIO_HOLD, () => endTurn(instant), instant);
+  }
+
+  function announceStalemate() {
+    gameOver = true;
+    locked = true;
+    setStatus("stalemate");
+    if (winMessageEl) winMessageEl.textContent = t(STRINGS.stalemate);
+    renderStandings();
+    if (winBanner) winBanner.hidden = false;
+    renderAll();
   }
 
   function checkWin(player) {

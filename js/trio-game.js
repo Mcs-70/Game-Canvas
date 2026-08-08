@@ -91,6 +91,10 @@ document.addEventListener("DOMContentLoaded", () => {
     botWinSimple: { en: "{name} wins with three trios. Better luck next time!", ar: "{name} يفوز بثلاث ثلاثيات. حظ أوفر في المرة القادمة!" },
     botWinSpicy: { en: "{name} wins with two connected trios. Better luck next time!", ar: "{name} يفوز بثلاثيتين مترابطتين. حظ أوفر في المرة القادمة!" },
     botWinSeven: { en: "{name} wins instantly with the trio of 7s!", ar: "{name} يفوز فورًا بثلاثية الرقم 7!" },
+    stalemate: {
+      en: "No trio can be reached any more — the round is a draw. Restart for a fresh deal.",
+      ar: "لم يعد بالإمكان الوصول إلى أي ثلاثية — الجولة تعادل. أعد البدء لتوزيع جديد.",
+    },
   };
 
   function setStatus(key, params) {
@@ -139,6 +143,28 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   }
 
+  // Only 15 positions are ever reachable (each hand's low + high end, plus
+  // the unclaimed centre), and that set cannot change until a trio is
+  // removed. So if no value has 3 copies among them, no trio can EVER be
+  // formed: turns pass forever with nothing to find. Roughly 10% of
+  // random 3-player deals are born in exactly that state, which is what
+  // made whole games run with zero trios collected.
+  function hasReachableTrio(handsMap, centerArr) {
+    const counts = new Map();
+    const bump = (v) => counts.set(v, (counts.get(v) || 0) + 1);
+    ZONES.forEach((zone) => {
+      const arr = handsMap[zone];
+      if (!arr.length) return;
+      bump(arr[0].value);
+      if (arr.length > 1) bump(arr[arr.length - 1].value);
+    });
+    centerArr.forEach((c) => {
+      if (!c.claimed) bump(c.value);
+    });
+    for (const n of counts.values()) if (n >= 3) return true;
+    return false;
+  }
+
   function startGame() {
     gen = (gen || 0) + 1;
     busy = false;
@@ -148,13 +174,18 @@ document.addEventListener("DOMContentLoaded", () => {
     turnRevealed = [];
     publicMemory = new Map();
 
-    const deck = buildDeck();
-    hands = {
-      you: deck.slice(0, 9).sort((a, b) => a.value - b.value),
-      bot1: deck.slice(9, 18).sort((a, b) => a.value - b.value),
-      bot2: deck.slice(18, 27).sort((a, b) => a.value - b.value),
-    };
-    center = deck.slice(27, 36).map((c) => ({ ...c, claimed: false }));
+    // Reshuffle past deals that are dead on arrival. The bound is pure
+    // paranoia — a winnable deal is ~90% likely each attempt.
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const deck = buildDeck();
+      hands = {
+        you: deck.slice(0, 9).sort((a, b) => a.value - b.value),
+        bot1: deck.slice(9, 18).sort((a, b) => a.value - b.value),
+        bot2: deck.slice(18, 27).sort((a, b) => a.value - b.value),
+      };
+      center = deck.slice(27, 36).map((c) => ({ ...c, claimed: false }));
+      if (hasReachableTrio(hands, center)) break;
+    }
     piles = { you: [], bot1: [], bot2: [] };
     currentPlayer = "you";
 
@@ -271,10 +302,31 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Removing a trio exposes new hand ends, so a position that was live
+    // a moment ago can become unreachable. Without this the round would
+    // silently run forever, exactly as an unwinnable opening deal did.
+    if (!hasReachableTrio(hands, center)) {
+      setTimeout(() => {
+        if (gen !== myGen) return;
+        announceStalemate();
+      }, TRIO_HOLD);
+      return;
+    }
+
     setTimeout(() => {
       if (gen !== myGen) return;
       endTurn();
     }, TRIO_HOLD);
+  }
+
+  function announceStalemate() {
+    gameOver = true;
+    busy = true;
+    setStatus("stalemate");
+    if (winMessageEl) winMessageEl.textContent = t(STRINGS.stalemate);
+    if (saveRow) saveRow.hidden = true;
+    if (winBanner) winBanner.hidden = false;
+    renderAll();
   }
 
   function checkWin(player) {
@@ -484,6 +536,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderTurnBar() {
     if (turnNameEl) turnNameEl.textContent = playerName(currentPlayer);
     if (yourCountEl) yourCountEl.textContent = String(piles.you.length);
+    ZONES.forEach((zone) => {
+      const zoneEl = document.getElementById(`trio-zone-${zone}`);
+      if (zoneEl) zoneEl.classList.toggle("trio-zone-active", zone === currentPlayer);
+    });
   }
 
   function renderAll() {
