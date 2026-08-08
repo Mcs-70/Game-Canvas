@@ -297,15 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const token = genToken();
       const roomRef = ref(db, `trioRooms/${code}`);
 
-      // runTransaction's update function can fire speculatively with
-      // `room === null` on its first call whenever the SDK has no
-      // locally-cached value yet (e.g. a fresh page that never fetched
-      // this path before) — even when the room genuinely exists on the
-      // server. Returning `undefined` (abort) for that case would kill
-      // real joins outright. A plain get() first warms the SDK's local
-      // cache for this exact path, so the transaction's first call sees
-      // the real data — and it doubles as a fast existence/status check
-      // for a clean error message before even attempting to join.
+      // Fast-path check for a clean error message. Note this does NOT
+      // warm any cache the transaction below relies on — a plain get()
+      // and a transaction's internal state are unrelated in this SDK.
       let preSnap;
       try {
         preSnap = await get(roomRef);
@@ -324,19 +318,35 @@ document.addEventListener("DOMContentLoaded", () => {
         joinBtn.disabled = false;
         return;
       }
+      if (Object.keys(preSnap.val().players || {}).length >= MAX_PLAYERS) {
+        showError("That room is full (6 players max).", "هذه الغرفة ممتلئة (6 لاعبين كحد أقصى).");
+        joinBtn.disabled = false;
+        return;
+      }
 
+      // runTransaction's update function always fires at least once
+      // speculatively with `room === null` (it has no local cache to
+      // start from), computes an optimistic result, and only THEN
+      // compares it against the real server value — retrying with the
+      // real data if they don't match. So the null-room call must be
+      // treated as "no information yet", not as "room doesn't exist":
+      // aborting on it (as an earlier version of this code did) starves
+      // the transaction of the retry that would have seen the real
+      // room. Real existence was already confirmed by the get() above;
+      // status/capacity are only enforced once `room` is non-null (i.e.
+      // once real server data has actually been seen).
       let result;
       try {
         result = await runTransaction(roomRef, (room) => {
-          if (!room) return undefined; // abort: room vanished between the check above and now
-          if (room.status !== "lobby") return undefined; // abort: started in the meantime
-          const players = room.players || {};
+          const safeRoom = room || {};
+          if (room && room.status !== "lobby") return undefined; // real data: started
+          const players = safeRoom.players || {};
           const count = Object.keys(players).length;
-          if (count >= MAX_PLAYERS) return undefined; // abort: full
+          if (room && count >= MAX_PLAYERS) return undefined; // real data: full
           const slot = `p${count + 1}`;
           players[slot] = { name, joinToken: token };
-          room.players = players;
-          return room;
+          safeRoom.players = players;
+          return safeRoom;
         });
       } catch (e) {
         showError("Couldn't reach the room. Check your Firebase setup and try again.", "تعذّر الوصول إلى الغرفة. تحقق من إعداد Firebase وحاول مجددًا.");
