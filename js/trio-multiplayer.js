@@ -1,15 +1,20 @@
-// Game Canvas — "Trio, Play with a Friend" for trio-multiplayer.html.
+// Game Canvas — "Trio, Play with a Friend(s)" for trio-multiplayer.html.
 //
-// Two browsers stay in sync via a Firebase Realtime Database room. Hidden
-// hands are never sent over the network: the room only stores a shared
-// random seed, and both clients independently deal the exact same deck
-// from it. Only *positions* revealed ("low card of p2's hand", "center
-// slot 4") are written to the room's action log — never card values — so
-// casual play never leaks hidden information over the wire. (A player
-// who deliberately opens devtools and re-runs the same public shuffle
-// function could reconstruct hidden cards; that's a limitation of any
-// client-authoritative browser game without a trusted server, same as
-// the vs-bots version's bot "memory".)
+// Rooms support 3-6 players, matching Trio's actual rulebook (hand sizes
+// 9/7/6/5 cards for 3/4/5/6 players, remainder to the center). Players
+// trickle into a room lobby; the host starts once there are at least 3.
+// Joining is done via a Firebase Realtime Database transaction on the
+// whole room object so concurrent joins can't collide on the same seat,
+// and can't sneak in once the host has started or the room is full.
+//
+// Hidden hands are never sent over the network: the room only stores a
+// shared random seed (chosen once the roster is locked in at start),
+// and every client independently deals the same deck from it. Only
+// *positions* revealed are written to the action log — never values —
+// so casual play never leaks hidden information over the wire. (A
+// player who deliberately opens devtools and re-runs the same public
+// shuffle function could reconstruct hidden cards; that's a limitation
+// of any client-authoritative browser game without a trusted server.)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -19,6 +24,7 @@ import {
   get,
   update,
   push,
+  runTransaction,
   onValue,
   onChildAdded,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
@@ -36,19 +42,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const joinCodeInput = document.getElementById("tmpl-join-code");
   const joinBtn = document.getElementById("tmpl-join-btn");
 
-  const waitingEl = document.getElementById("tmpl-waiting");
+  const roomLobbyEl = document.getElementById("tmpl-room-lobby");
   const roomCodeDisplay = document.getElementById("tmpl-room-code-display");
   const copyCodeBtn = document.getElementById("tmpl-copy-code");
-  const cancelRoomBtn = document.getElementById("tmpl-cancel-room");
+  const playerCountEl = document.getElementById("tmpl-player-count");
+  const playerListEl = document.getElementById("tmpl-player-list");
+  const startGameBtn = document.getElementById("tmpl-start-game-btn");
+  const lobbyWaitMsg = document.getElementById("tmpl-lobby-wait-msg");
+  const leaveLobbyBtn = document.getElementById("tmpl-leave-lobby-btn");
 
   const gameEl = document.getElementById("tmpl-game");
   const roomLabelEl = document.getElementById("tmpl-room-label");
   const turnNameEl = document.getElementById("tmpl-turn-name");
   const statusEl = document.getElementById("tmpl-status");
-  const oppNameEl = document.getElementById("tmpl-opp-name");
+  const opponentsContainer = document.getElementById("tmpl-opponents");
 
   const winBanner = document.getElementById("tmpl-win-banner");
   const winMessageEl = document.getElementById("tmpl-win-message");
+  const standingsEl = document.getElementById("tmpl-standings");
   const rematchBtn = document.getElementById("tmpl-rematch-btn");
   const leaveBtn = document.getElementById("tmpl-leave-btn");
   const langToggle = document.getElementById("lang-toggle");
@@ -70,6 +81,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const MISMATCH_HOLD = 1100;
   const TRIO_HOLD = 900;
   const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
+  const MIN_PLAYERS = 3;
+  const MAX_PLAYERS = 6;
+  const HAND_SIZES = { 3: 9, 4: 7, 5: 6, 6: 5 }; // Trio's official deal by player count
 
   const STRINGS = {
     yourTurn: { en: "Your turn — pick a card to reveal.", ar: "دورك — اختر بطاقة لتكشفها." },
@@ -88,9 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let mode = "simple";
   let roomCode = null;
-  let myRole = null; // "p1" | "p2"
+  let myRole = null; // "p1".."p6"
   let myName = "";
-  let opponentName = "";
+  let myToken = "";
+  let playersInfo = {}; // { p1: {name, joinToken}, ... } — frozen once the game starts
+  let playerRoles = []; // ["p1","p2",...] in seat order — frozen once the game starts
   let hands, center, piles, currentPlayer;
   let revealedSet, turnRevealed;
   let queue = [];
@@ -100,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let statusKey = null;
   let statusParams = null;
 
-  let unsubGuestName = null;
+  let unsubLobby = null;
   let unsubSeed = null;
   let unsubActions = null;
 
@@ -161,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return array;
   }
 
-  function dealFromSeed(seed) {
+  function dealFromSeed(seed, roles) {
     const rng = mulberry32(seed);
     const cards = [];
     let id = 0;
@@ -169,11 +185,16 @@ document.addEventListener("DOMContentLoaded", () => {
       for (let k = 0; k < 3; k++) cards.push({ id: id++, value });
     }
     seededShuffle(cards, rng);
-    return {
-      p1: cards.slice(0, 9).sort((a, b) => a.value - b.value),
-      p2: cards.slice(9, 18).sort((a, b) => a.value - b.value),
-      center: cards.slice(18, 36).map((c) => ({ ...c, claimed: false })),
-    };
+
+    const handSize = HAND_SIZES[roles.length];
+    const dealtHands = {};
+    let offset = 0;
+    roles.forEach((role) => {
+      dealtHands[role] = cards.slice(offset, offset + handSize).sort((a, b) => a.value - b.value);
+      offset += handSize;
+    });
+    const dealtCenter = cards.slice(offset).map((c) => ({ ...c, claimed: false }));
+    return { hands: dealtHands, center: dealtCenter };
   }
 
   function connectors(value) {
@@ -192,19 +213,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return code;
   }
 
-  function otherRole(role) {
-    return role === "p1" ? "p2" : "p1";
+  function genToken() {
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  function roleIndex(role) {
+    return parseInt(role.slice(1), 10);
+  }
+
+  function nextPlayer(role) {
+    const i = playerRoles.indexOf(role);
+    return playerRoles[(i + 1) % playerRoles.length];
   }
 
   function playerName(role) {
     if (role === myRole) return isAr() ? "أنت" : "You";
-    return opponentName;
+    const info = playersInfo[role];
+    return info ? info.name : role;
   }
 
   function zoneLabel(zone) {
     if (zone === "center") return isAr() ? "الوسط" : "the center";
     if (zone === myRole) return isAr() ? "يدك" : "your hand";
-    return isAr() ? `يد ${opponentName}` : `${opponentName}'s hand`;
+    const name = playerName(zone);
+    return isAr() ? `يد ${name}` : `${name}'s hand`;
   }
 
   // ---------- lobby: create ----------
@@ -221,17 +253,17 @@ document.addEventListener("DOMContentLoaded", () => {
   if (createBtn) {
     createBtn.addEventListener("click", async () => {
       clearError();
-      const name = (createNameInput.value.trim() || (isAr() ? "لاعب 1" : "Player 1")).slice(0, 18);
+      const name = (createNameInput.value.trim() || (isAr() ? "لاعب" : "Player")).slice(0, 18);
       const code = genRoomCode();
-      const seed = Math.floor(Math.random() * 2 ** 31);
+      const token = genToken();
       createBtn.disabled = true;
       try {
         await set(ref(db, `trioRooms/${code}`), {
           mode,
-          seed,
-          hostName: name,
-          guestName: null,
+          status: "lobby",
+          seed: null,
           createdAt: Date.now(),
+          players: { p1: { name, joinToken: token } },
         });
       } catch (e) {
         showError("Couldn't create the room. Check your Firebase setup and try again.", "تعذّر إنشاء الغرفة. تحقق من إعداد Firebase وحاول مجددًا.");
@@ -241,21 +273,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
       myRole = "p1";
       myName = name;
+      myToken = token;
       roomCode = code;
 
       lobby.hidden = true;
-      waitingEl.hidden = false;
-      roomCodeDisplay.textContent = code;
+      enterRoomLobby();
+    });
+  }
 
-      unsubGuestName = onValue(ref(db, `trioRooms/${code}/guestName`), (snap) => {
-        const guestName = snap.val();
-        if (guestName) {
-          if (unsubGuestName) unsubGuestName();
-          opponentName = guestName;
-          waitingEl.hidden = true;
-          enterGame(seed, mode);
+  // ---------- lobby: join ----------
+
+  if (joinBtn) {
+    joinBtn.addEventListener("click", async () => {
+      clearError();
+      const name = (joinNameInput.value.trim() || (isAr() ? "لاعب" : "Player")).slice(0, 18);
+      const code = joinCodeInput.value.trim().toUpperCase();
+      if (!code) {
+        showError("Enter a room code to join.", "أدخل رمز الغرفة للانضمام.");
+        return;
+      }
+
+      joinBtn.disabled = true;
+      const token = genToken();
+      const roomRef = ref(db, `trioRooms/${code}`);
+      let result;
+      try {
+        result = await runTransaction(roomRef, (room) => {
+          if (!room) return undefined; // abort: room doesn't exist
+          if (room.status !== "lobby") return undefined; // abort: already started
+          const players = room.players || {};
+          const count = Object.keys(players).length;
+          if (count >= MAX_PLAYERS) return undefined; // abort: full
+          const slot = `p${count + 1}`;
+          players[slot] = { name, joinToken: token };
+          room.players = players;
+          return room;
+        });
+      } catch (e) {
+        showError("Couldn't reach the room. Check your Firebase setup and try again.", "تعذّر الوصول إلى الغرفة. تحقق من إعداد Firebase وحاول مجددًا.");
+        joinBtn.disabled = false;
+        return;
+      }
+
+      if (!result.committed) {
+        const snap = await get(roomRef);
+        if (!snap.exists()) {
+          showError("Room not found. Double-check the code.", "لم يتم العثور على الغرفة. تحقق من الرمز.");
+        } else if (snap.val().status !== "lobby") {
+          showError("That room has already started.", "هذه الغرفة بدأت اللعبة بالفعل.");
+        } else {
+          showError("That room is full (6 players max).", "هذه الغرفة ممتلئة (6 لاعبين كحد أقصى).");
         }
-      });
+        joinBtn.disabled = false;
+        return;
+      }
+
+      const players = result.snapshot.val().players;
+      const assignedRole = Object.keys(players).find((k) => players[k].joinToken === token);
+
+      myRole = assignedRole;
+      myName = name;
+      myToken = token;
+      roomCode = code;
+      mode = result.snapshot.val().mode;
+
+      lobby.hidden = true;
+      enterRoomLobby();
     });
   }
 
@@ -265,69 +348,99 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (cancelRoomBtn) {
-    cancelRoomBtn.addEventListener("click", () => {
-      if (unsubGuestName) unsubGuestName();
-      resetToLobby();
+  // ---------- room lobby: watch players, host starts ----------
+
+  function enterRoomLobby() {
+    roomLobbyEl.hidden = false;
+    roomCodeDisplay.textContent = roomCode;
+
+    unsubLobby = onValue(ref(db, `trioRooms/${roomCode}`), (snap) => {
+      const data = snap.val();
+      if (!data) return;
+
+      if (data.status === "lobby") {
+        renderLobbyPlayers(data.players || {});
+      } else if (data.status === "playing" && data.seed != null) {
+        if (unsubLobby) {
+          unsubLobby();
+          unsubLobby = null;
+        }
+        playersInfo = data.players;
+        playerRoles = Object.keys(playersInfo).sort((a, b) => roleIndex(a) - roleIndex(b));
+        mode = data.mode;
+        roomLobbyEl.hidden = true;
+        startGame(data.seed);
+      }
     });
   }
 
-  // ---------- lobby: join ----------
+  function renderLobbyPlayers(players) {
+    const roles = Object.keys(players).sort((a, b) => roleIndex(a) - roleIndex(b));
+    const count = roles.length;
 
-  if (joinBtn) {
-    joinBtn.addEventListener("click", async () => {
-      clearError();
-      const name = (joinNameInput.value.trim() || (isAr() ? "لاعب 2" : "Player 2")).slice(0, 18);
-      const code = joinCodeInput.value.trim().toUpperCase();
-      if (!code) {
-        showError("Enter a room code to join.", "أدخل رمز الغرفة للانضمام.");
-        return;
-      }
+    if (playerCountEl) {
+      playerCountEl.textContent = isAr()
+        ? `${count}/${MAX_PLAYERS} لاعبين انضموا (الحد الأدنى ${MIN_PLAYERS})`
+        : `${count}/${MAX_PLAYERS} players joined (minimum ${MIN_PLAYERS})`;
+    }
 
-      joinBtn.disabled = true;
-      let snap;
+    if (playerListEl) {
+      playerListEl.innerHTML = "";
+      roles.forEach((role) => {
+        const li = document.createElement("li");
+        if (role === myRole) li.classList.add("tmpl-player-you");
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = players[role].name + (role === myRole ? (isAr() ? " (أنت)" : " (You)") : "");
+        li.appendChild(nameSpan);
+        if (role === "p1") {
+          const badge = document.createElement("span");
+          badge.className = "tmpl-player-host-badge";
+          badge.textContent = isAr() ? "المضيف" : "Host";
+          li.appendChild(badge);
+        }
+        playerListEl.appendChild(li);
+      });
+    }
+
+    const isHost = myRole === "p1";
+    if (startGameBtn) {
+      startGameBtn.hidden = !isHost;
+      startGameBtn.disabled = count < MIN_PLAYERS;
+    }
+    if (lobbyWaitMsg) lobbyWaitMsg.hidden = isHost;
+  }
+
+  if (startGameBtn) {
+    startGameBtn.addEventListener("click", async () => {
+      const snap = await get(ref(db, `trioRooms/${roomCode}/players`));
+      const count = snap.exists() ? Object.keys(snap.val()).length : 0;
+      if (count < MIN_PLAYERS) return;
+      const seed = Math.floor(Math.random() * 2 ** 31);
+      startGameBtn.disabled = true;
       try {
-        snap = await get(ref(db, `trioRooms/${code}`));
+        await update(ref(db, `trioRooms/${roomCode}`), { status: "playing", seed });
       } catch (e) {
-        showError("Couldn't reach the room. Check your Firebase setup and try again.", "تعذّر الوصول إلى الغرفة. تحقق من إعداد Firebase وحاول مجددًا.");
-        joinBtn.disabled = false;
-        return;
+        startGameBtn.disabled = false;
       }
+    });
+  }
 
-      if (!snap.exists()) {
-        showError("Room not found. Double-check the code.", "لم يتم العثور على الغرفة. تحقق من الرمز.");
-        joinBtn.disabled = false;
-        return;
-      }
-      const data = snap.val();
-      if (data.guestName) {
-        showError("That room is already full.", "هذه الغرفة ممتلئة بالفعل.");
-        joinBtn.disabled = false;
-        return;
-      }
-
-      await update(ref(db, `trioRooms/${code}`), { guestName: name });
-
-      myRole = "p2";
-      myName = name;
-      roomCode = code;
-      opponentName = data.hostName;
-      mode = data.mode;
-
-      lobby.hidden = true;
-      enterGame(data.seed, data.mode);
+  if (leaveLobbyBtn) {
+    leaveLobbyBtn.addEventListener("click", () => {
+      if (unsubLobby) unsubLobby();
+      unsubLobby = null;
+      resetToLobby();
     });
   }
 
   // ---------- entering / resetting the game ----------
 
-  function enterGame(seed, gameMode) {
-    mode = gameMode;
-    if (roomLabelEl) roomLabelEl.textContent = roomCode;
-    if (oppNameEl) oppNameEl.textContent = opponentName;
+  function startGame(seed) {
     gameEl.hidden = false;
     if (winBanner) winBanner.hidden = true;
+    if (roomLabelEl) roomLabelEl.textContent = roomCode;
 
+    buildOpponentZones();
     resetLocalState(seed);
     renderAll();
     setStatus(currentPlayer === myRole ? "yourTurn" : "opponentTurn", { name: playerName(currentPlayer) });
@@ -351,12 +464,45 @@ document.addEventListener("DOMContentLoaded", () => {
     attachActionListener();
   }
 
+  function buildOpponentZones() {
+    if (!opponentsContainer) return;
+    opponentsContainer.innerHTML = "";
+    playerRoles
+      .filter((role) => role !== myRole)
+      .forEach((role) => {
+        const zone = document.createElement("div");
+        zone.className = "trio-zone trio-zone-bot";
+        zone.id = `tmpl-zone-${role}`;
+
+        const title = document.createElement("h3");
+        title.className = "trio-zone-title";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = playerName(role);
+        const countSpan = document.createElement("span");
+        countSpan.className = "trio-zone-count";
+        countSpan.id = `tmpl-count-${role}`;
+        title.append(nameSpan, countSpan);
+
+        const hand = document.createElement("div");
+        hand.className = "trio-hand";
+        hand.id = `tmpl-hand-${role}`;
+
+        const piles = document.createElement("div");
+        piles.className = "trio-piles";
+        piles.id = `tmpl-piles-${role}`;
+
+        zone.append(title, hand, piles);
+        opponentsContainer.appendChild(zone);
+      });
+  }
+
   function resetLocalState(seed) {
-    const dealt = dealFromSeed(seed);
-    hands = { p1: dealt.p1, p2: dealt.p2 };
+    const dealt = dealFromSeed(seed, playerRoles);
+    hands = dealt.hands;
     center = dealt.center;
-    piles = { p1: [], p2: [] };
-    currentPlayer = "p1";
+    piles = {};
+    playerRoles.forEach((role) => (piles[role] = []));
+    currentPlayer = playerRoles[0];
     revealedSet = new Set();
     turnRevealed = [];
     queue = [];
@@ -389,7 +535,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function getAccessiblePositions() {
     const list = [];
-    ["p1", "p2"].forEach((zone) => {
+    playerRoles.forEach((zone) => {
       const arr = hands[zone];
       if (!arr.length) return;
       if (!revealedSet.has(arr[0].id)) list.push({ zone, end: "low", card: arr[0] });
@@ -409,11 +555,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function trySend(zone, end, idx) {
     if (locked || gameOver || currentPlayer !== myRole) return;
-    // Note: no optimistic local lock here — the card only becomes
-    // "revealed" once this action round-trips back through
-    // onChildAdded and applyAction() processes it (the single source
-    // of truth for state changes). Locking here too would leave
-    // `locked` stuck true forever, since only applyAction() clears it.
+    // No optimistic local lock here — the reveal only becomes real once
+    // this action round-trips back through onChildAdded and
+    // applyAction() processes it (the single source of truth).
     const action = { by: myRole, ts: Date.now(), zone };
     if (zone === "center") action.idx = idx;
     else action.end = end;
@@ -480,7 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setStatus("mismatch", {
       source: zoneLabel(action.zone),
       value: card.value,
-      next: playerName(otherRole(currentPlayer)),
+      next: playerName(nextPlayer(currentPlayer)),
     });
     after(MISMATCH_HOLD, () => {
       revealedSet.clear();
@@ -528,7 +672,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function endTurn(instant) {
-    currentPlayer = otherRole(currentPlayer);
+    currentPlayer = nextPlayer(currentPlayer);
     locked = false;
     renderAll();
     setStatus(currentPlayer === myRole ? "yourTurn" : "opponentTurn", { name: playerName(currentPlayer) });
@@ -545,8 +689,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = { name: playerName(player) };
     setStatus(key, params);
     if (winMessageEl) winMessageEl.textContent = fill(t(STRINGS[key]), params);
+    renderStandings();
     if (winBanner) winBanner.hidden = false;
     renderAll();
+  }
+
+  function renderStandings() {
+    if (!standingsEl) return;
+    standingsEl.innerHTML = "";
+    const sorted = [...playerRoles].sort((a, b) => piles[b].length - piles[a].length);
+    sorted.forEach((role) => {
+      const li = document.createElement("li");
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = playerName(role);
+      const countSpan = document.createElement("span");
+      countSpan.textContent = isAr() ? `${piles[role].length} ثلاثيات` : `${piles[role].length} trios`;
+      li.append(nameSpan, countSpan);
+      standingsEl.appendChild(li);
+    });
   }
 
   // ---------- rematch / leave ----------
@@ -568,19 +728,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (leaveBtn) leaveBtn.addEventListener("click", leaveRoom);
 
   function leaveRoom() {
-    if (unsubGuestName) unsubGuestName();
+    if (unsubLobby) unsubLobby();
     if (unsubSeed) unsubSeed();
     if (unsubActions) unsubActions();
-    unsubGuestName = unsubSeed = unsubActions = null;
+    unsubLobby = unsubSeed = unsubActions = null;
     resetToLobby();
   }
 
   function resetToLobby() {
     roomCode = null;
     myRole = null;
+    playersInfo = {};
+    playerRoles = [];
     gameOver = false;
     if (gameEl) gameEl.hidden = true;
-    if (waitingEl) waitingEl.hidden = true;
+    if (roomLobbyEl) roomLobbyEl.hidden = true;
     if (winBanner) winBanner.hidden = true;
     if (lobby) lobby.hidden = false;
     if (createBtn) createBtn.disabled = false;
@@ -593,14 +755,29 @@ document.addEventListener("DOMContentLoaded", () => {
   function makeCardEl(tag, faceUp, value, extraClass) {
     const el = document.createElement(tag);
     if (tag === "button") el.type = "button";
-    el.className = `trio-card ${faceUp ? "" : "trio-card-back"} ${extraClass || ""}`.trim();
-    if (faceUp) el.textContent = String(value);
+    el.className = `trio-card ${faceUp ? "trio-flipped" : ""} ${extraClass || ""}`.trim();
+
+    const inner = document.createElement("span");
+    inner.className = "trio-card-inner";
+
+    const back = document.createElement("span");
+    back.className = "trio-card-back";
+
+    const front = document.createElement("span");
+    front.className = "trio-card-front";
+    // Only ever write the value once the card is actually revealed —
+    // a face-down card's front stays empty in the DOM, not just
+    // visually rotated away, so it can't be read via devtools.
+    if (faceUp) front.textContent = String(value);
+
+    inner.append(back, front);
+    el.appendChild(inner);
     return el;
   }
 
   function domIdsFor(zone) {
     if (zone === myRole) return { hand: "tmpl-hand-you", count: "tmpl-you-count", piles: "tmpl-piles-you" };
-    return { hand: "tmpl-hand-opp", count: "tmpl-opp-count", piles: "tmpl-piles-opp" };
+    return { hand: `tmpl-hand-${zone}`, count: `tmpl-count-${zone}`, piles: `tmpl-piles-${zone}` };
   }
 
   function renderHand(zone) {
@@ -672,12 +849,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderTurnBar() {
     if (turnNameEl) turnNameEl.textContent = playerName(currentPlayer);
-    if (oppNameEl) oppNameEl.textContent = opponentName;
+    playerRoles.forEach((role) => {
+      const zoneId = role === myRole ? "tmpl-zone-you" : `tmpl-zone-${role}`;
+      const zoneEl = document.getElementById(zoneId);
+      if (zoneEl) zoneEl.classList.toggle("trio-zone-active", role === currentPlayer);
+    });
   }
 
   function renderAll() {
     if (!hands) return;
-    ["p1", "p2"].forEach((zone) => {
+    playerRoles.forEach((zone) => {
       renderHand(zone);
       renderPiles(zone);
     });

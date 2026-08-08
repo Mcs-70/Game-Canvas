@@ -878,6 +878,11 @@ h1, h2, h3, h4 {
   border-color: var(--color-gold);
 }
 
+.trio-zone-active {
+  box-shadow: 0 0 0 3px rgba(23, 92, 104, 0.3), 0 10px 24px rgba(14, 59, 67, 0.15);
+  transition: box-shadow 0.2s ease;
+}
+
 .trio-zone-title {
   font-size: 0.9rem;
   color: var(--color-primary);
@@ -912,34 +917,22 @@ h1, h2, h3, h4 {
   margin: 0 auto;
 }
 
+/* Flip-card structure mirrors .mem-card: a perspective wrapper around an
+   inner element that rotates 180deg, with back/front faces glued to
+   opposite sides via backface-visibility. The front face's text is only
+   ever written to the DOM once a card is actually revealed (see
+   makeCardEl in trio-game.js / trio-multiplayer.js) — CSS alone never
+   hides a hidden card's value, since that would leave it inspectable
+   via devtools regardless of the visual flip state. */
 .trio-card {
   width: 40px;
   height: 54px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: #fff;
-  background: var(--color-primary-light);
-  border: 2px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  perspective: 500px;
+  background: none;
+  border: none;
+  padding: 0;
   font-family: inherit;
-}
-
-.trio-card-empty {
-  visibility: hidden;
-}
-
-.trio-card-back {
-  background: var(--color-primary-dark);
-}
-
-.trio-card-back::after {
-  content: "?";
-  opacity: 0.5;
-  font-size: 0.95rem;
+  transition: transform 0.15s ease;
 }
 
 button.trio-card {
@@ -948,31 +941,60 @@ button.trio-card {
 
 button.trio-card:hover:not(:disabled) {
   transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(14, 59, 67, 0.2);
 }
 
-button.trio-card:disabled {
-  cursor: default;
+.trio-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
 }
 
-.trio-card:not(.trio-card-back):not(:disabled) {
-  cursor: default;
+.trio-card.trio-flipped .trio-card-inner {
+  transform: rotateY(180deg);
 }
 
-.trio-card.trio-revealed {
+.trio-card-back,
+.trio-card-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  backface-visibility: hidden;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.trio-card-back {
+  background: var(--color-primary-dark);
+  border: 2px solid var(--color-primary-light);
+}
+
+.trio-card-back::after {
+  content: "?";
+  opacity: 0.5;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.trio-card-front {
+  background: var(--color-primary-light);
+  color: #fff;
+  border: 2px solid transparent;
+  transform: rotateY(180deg);
+}
+
+.trio-card-empty {
+  visibility: hidden;
+}
+
+.trio-card.trio-revealed .trio-card-front,
+.trio-card.trio-revealed .trio-card-back {
   border-color: var(--color-gold);
   box-shadow: 0 0 0 3px rgba(232, 185, 74, 0.3);
-}
-
-.trio-card.trio-mismatch {
-  border-color: var(--color-coral);
-  animation: trio-shake 0.4s ease;
-}
-
-@keyframes trio-shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
 }
 
 .trio-piles {
@@ -1096,6 +1118,76 @@ button.trio-card:disabled {
   border: 2px dashed var(--color-gold);
   border-radius: 12px;
   padding: 0.5rem 1.2rem;
+}
+
+.tmpl-room-lobby {
+  max-width: 380px;
+  margin: 0 auto var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+.tmpl-player-count {
+  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.tmpl-player-list {
+  width: 100%;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.tmpl-player-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tmpl-player-list li.tmpl-player-you {
+  border-color: var(--color-gold);
+  background: rgba(232, 185, 74, 0.12);
+}
+
+.tmpl-player-host-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-light);
+  font-weight: 700;
+}
+
+.tmpl-standings {
+  width: 100%;
+  max-width: 280px;
+  display: grid;
+  gap: 0.3rem;
+  margin: var(--space-1) 0;
+}
+
+.tmpl-standings li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 /* ===== About ===== */

@@ -24,7 +24,7 @@
   <main>
     <section class="section trio-game" aria-labelledby="tmpl-title">
       <h1 id="tmpl-title" class="section-title" data-en="Trio &mdash; Play with a Friend" data-ar="تريو — العب مع صديق">Trio &mdash; Play with a Friend</h1>
-      <p class="section-subtitle" data-en="Create a room and share the code, or join a friend's room." data-ar="أنشئ غرفة وشارك الرمز، أو انضم إلى غرفة صديقك.">Create a room and share the code, or join a friend's room.</p>
+      <p class="section-subtitle" data-en="Create a room for 3&ndash;6 players and share the code, or join a friend's room." data-ar="أنشئ غرفة لِـ 3-6 لاعبين وشارك الرمز، أو انضم إلى غرفة صديقك.">Create a room for 3&ndash;6 players and share the code, or join a friend's room.</p>
 
       <!-- ===== LOBBY: create or join ===== -->
       <div class="tmpl-lobby" id="tmpl-lobby">
@@ -49,13 +49,19 @@
 
       <p class="tmpl-error" id="tmpl-error" role="alert" hidden></p>
 
-      <!-- ===== WAITING FOR A GUEST ===== -->
-      <div class="tmpl-waiting" id="tmpl-waiting" hidden>
-        <p data-en="Share this code with your friend:" data-ar="شارك هذا الرمز مع صديقك:">Share this code with your friend:</p>
+      <!-- ===== ROOM LOBBY: players trickle in, host starts when ready ===== -->
+      <div class="tmpl-room-lobby" id="tmpl-room-lobby" hidden>
+        <p data-en="Share this code with friends:" data-ar="شارك هذا الرمز مع أصدقائك:">Share this code with friends:</p>
         <div class="tmpl-room-code" id="tmpl-room-code-display"></div>
         <button type="button" class="btn btn-outline btn-dark" id="tmpl-copy-code" data-en="Copy Code" data-ar="نسخ الرمز">Copy Code</button>
-        <p class="trio-status" id="tmpl-waiting-status" data-en="Waiting for your friend to join&hellip;" data-ar="بانتظار انضمام صديقك…">Waiting for your friend to join&hellip;</p>
-        <button type="button" class="btn btn-outline btn-dark" id="tmpl-cancel-room" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+
+        <p class="tmpl-player-count" id="tmpl-player-count"></p>
+        <ul class="tmpl-player-list" id="tmpl-player-list"></ul>
+
+        <button type="button" class="btn btn-primary" id="tmpl-start-game-btn" data-en="Start Game" data-ar="ابدأ اللعبة" hidden>Start Game</button>
+        <p class="trio-status" id="tmpl-lobby-wait-msg" data-en="Waiting for the host to start&hellip;" data-ar="بانتظار بدء المضيف للعبة…" hidden>Waiting for the host to start&hellip;</p>
+
+        <button type="button" class="btn btn-outline btn-dark" id="tmpl-leave-lobby-btn" data-en="Leave" data-ar="مغادرة">Leave</button>
       </div>
 
       <!-- ===== GAME BOARD ===== -->
@@ -72,14 +78,7 @@
         <p class="trio-status" id="tmpl-status" role="status" aria-live="polite"></p>
 
         <div class="trio-board" id="tmpl-board">
-          <div class="trio-zone trio-zone-bot" id="tmpl-zone-opp">
-            <h3 class="trio-zone-title">
-              <span id="tmpl-opp-name">Opponent</span>
-              <span class="trio-zone-count" id="tmpl-opp-count">9</span>
-            </h3>
-            <div class="trio-hand" id="tmpl-hand-opp"></div>
-            <div class="trio-piles" id="tmpl-piles-opp"></div>
-          </div>
+          <div id="tmpl-opponents"></div>
 
           <div class="trio-zone trio-zone-center">
             <h3 class="trio-zone-title" data-en="Center" data-ar="الوسط">Center</h3>
@@ -99,6 +98,7 @@
 
       <div class="trio-win-banner" id="tmpl-win-banner" hidden>
         <p id="tmpl-win-message"></p>
+        <ul class="tmpl-standings" id="tmpl-standings"></ul>
         <div class="tmpl-win-actions">
           <button type="button" class="btn btn-primary" id="tmpl-rematch-btn" data-en="Rematch" data-ar="إعادة المباراة">Rematch</button>
           <button type="button" class="btn btn-outline btn-dark" id="tmpl-leave-btn" data-en="Leave Room" data-ar="مغادرة الغرفة">Leave Room</button>

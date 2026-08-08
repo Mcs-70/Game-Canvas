@@ -392,8 +392,23 @@ document.addEventListener("DOMContentLoaded", () => {
   function makeCardEl(tag, faceUp, value, extraClass) {
     const el = document.createElement(tag);
     if (tag === "button") el.type = "button";
-    el.className = `trio-card ${faceUp ? "" : "trio-card-back"} ${extraClass || ""}`.trim();
-    if (faceUp) el.textContent = String(value);
+    el.className = `trio-card ${faceUp ? "trio-flipped" : ""} ${extraClass || ""}`.trim();
+
+    const inner = document.createElement("span");
+    inner.className = "trio-card-inner";
+
+    const back = document.createElement("span");
+    back.className = "trio-card-back";
+
+    const front = document.createElement("span");
+    front.className = "trio-card-front";
+    // Only ever write the value once the card is actually revealed —
+    // a face-down card's front stays empty in the DOM, not just
+    // visually rotated away, so it can't be read via devtools.
+    if (faceUp) front.textContent = String(value);
+
+    inner.append(back, front);
+    el.appendChild(inner);
     return el;
   }
 
