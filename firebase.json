@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "trio cards.jpg",
+      "trio_rules.pdf",
+      "README.md"
+    ]
+  }
+}
